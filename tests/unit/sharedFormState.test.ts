@@ -16,18 +16,18 @@ import {
 
 describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', () => {
   describe('getDefaultSocialManualData', () => {
-    it('retorna dados padrão exclusivos para escopo AGRO', () => {
+    it('retorna dados padrão exclusivos para escopo AGRO com tema azul titular padrão', () => {
       const data = getDefaultSocialManualData('AGRO');
       expect(data.titulo).toBe('Pulverizador Costal 16L');
-      expect(data.theme).toBe('campo-agro');
+      expect(data.theme).toBe('azul-coagro');
       expect(data.badge).toBe('Oferta Campo');
       expect(data.titulo).not.toContain('Ração');
     });
 
-    it('retorna dados padrão exclusivos para escopo PET', () => {
+    it('retorna dados padrão exclusivos para escopo PET com tema azul pet padrão', () => {
       const data = getDefaultSocialManualData('PET');
       expect(data.titulo).toBe('Ração Golden Special 15kg');
-      expect(data.theme).toBe('clean-branco');
+      expect(data.theme).toBe('azul-coagro');
       expect(data.badge).toBe('Oferta Pet');
       expect(data.titulo).not.toContain('Pulverizador');
     });
@@ -60,7 +60,7 @@ describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', 
       expect(content.tipo_postagem).toBe('promocao');
     });
 
-    it('converte SocialManualData para AgroPostContent respeitando escopo PET e tema clean-branco', () => {
+    it('converte SocialManualData para AgroPostContent respeitando escopo PET e tema azul-coagro', () => {
       const manual: SocialManualData = {
         titulo: 'Shampoo Neutro Pet 500ml',
         subtitulo: 'Pelagem macia e brilhante',
@@ -68,13 +68,13 @@ describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', 
         valorPor: '',
         diferenciais: ['Hipoalergênico'],
         cta: 'Venha conferir!',
-        theme: 'clean-branco',
+        theme: 'azul-coagro',
       };
 
       const content = syncSocialManualDataToContent(manual, 'PET');
 
       expect(content.linha).toBe('PET');
-      expect(content.tema).toBe('clean-branco');
+      expect(content.tema).toBe('azul-coagro');
       expect(content.template_layout).toBe('pet-central');
       expect(content.modulo_preco?.ativo).toBe(false);
       expect(content.tipo_postagem).toBe('informativo');

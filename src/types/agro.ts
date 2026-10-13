@@ -41,12 +41,12 @@ export interface CaixaSubtitulo {
 export type CanvasFormat = 'feed-quadrado' | 'feed-retrato' | 'story' | 'a4-retrato';
 
 /**
- * Templates de CARTAZ A4 (impressÃ£o fÃ­sica).
+ * Templates de CARTAZ A4 (impressão física).
  *
- * Tipo compartilhado de propÃ³sito: antes esta uniÃ£o estava copiada literalmente
- * em 6 arquivos (App, BatchReviewGrid, BatchRendererModal, types/batchâ€¦), o que
- * fazia "adicionar um cartaz novo" virar uma caÃ§a ao tesouro. Com o alias, um
- * template novo se registra aqui + no renderizador + na lista de opÃ§Ãµes da UI.
+ * Tipo compartilhado de propósito: antes esta união estava copiada literalmente
+ * em 6 arquivos (App, BatchReviewGrid, BatchRendererModal, types/batch…), o que
+ * fazia "adicionar um cartaz novo" virar uma caça ao tesouro. Com o alias, um
+ * template novo se registra aqui + no renderizador + na lista de opções da UI.
  */
 export type PosterTemplateLayout =
   | 'promo-mono-a4'
@@ -56,14 +56,20 @@ export type PosterTemplateLayout =
   | 'promo-text-only';
 
 /**
- * Layouts disponÃ­veis.
+ * Layouts disponíveis.
  *
+ * NOTA: `unified-central-mascot` e `unified-split-mascot` estão **reservados**
+ * (não implementados). Os grids genéricos de produto deformam a proporção dos
+ * mascotes, por isso eles saíram do renderizador e voltarão apenas em templates
+ * desenhados especificamente para os personagens — ver ROADMAP_COAGRO_STUDIO.md §3
+ * e a Fase 3 do roadmap. Os componentes seguem preservados em
+ * `src/components/art-renderer/templates/`.
  */
 export type TemplateLayout = 'unified-central' | 'unified-split' | 'unified-central-mascot' | 'unified-split-mascot' | 'informative-central' | 'informative-split' | 'promo-simples' | 'split-vertical' | 'hero-central' | 'pet-central' | 'pet-split-vertical' | 'pet-split' | 'whatsapp-status' | PosterTemplateLayout;
 
 export type CanvasTheme =
   | 'verde-coagro'   // #004d40 Dominante Institucional
-  | 'azul-coagro'    // #001C71 Azul PublicitÃ¡rio Oficial
+  | 'azul-coagro'    // #001C71 Azul Publicitário Oficial
   | 'clean-branco'   // #FFFFFF Fundo Claro
   | 'campo-agro'     // Fundo com foto do campo
   | 'fundo-gerado';
@@ -115,7 +121,7 @@ export interface AgroPostContent {
   legenda_instagram?: string;
   legenda_post?: string;
   fundo_texto?: boolean;
-  fundo_cor_hex?: string; // Cor sÃ³lida do Promo Simples: 'branco' | 'verde' | 'azul' | 'laranja'
+  fundo_cor_hex?: string; // Cor sólida do Promo Simples: 'branco' | 'verde' | 'azul' | 'laranja'
 }
 
 export type AgroContent = AgroPostContent;
@@ -123,7 +129,7 @@ export type AgroContent = AgroPostContent;
 export interface PresetProduct {
   id: string;
   name: string;
-  category: 'Defensivos' | 'Vacinas & Sanidade' | 'Fertilizantes' | 'PecuÃ¡ria' | 'Sementes' | 'Equipamentos';
+  category: 'Defensivos' | 'Vacinas & Sanidade' | 'Fertilizantes' | 'Pecuária' | 'Sementes' | 'Equipamentos';
   description: string;
   imageUrl: string;
   badge: string;
@@ -181,5 +187,5 @@ export const EMPTY_AGRO_CONTENT: AgroPostContent = {
 export const EMPTY_PET_CONTENT: AgroPostContent = {
   ...EMPTY_AGRO_CONTENT,
   template_layout: 'pet-central',
-  tema: 'clean-branco',
+  tema: 'azul-coagro',
 };

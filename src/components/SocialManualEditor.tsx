@@ -532,20 +532,18 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                   Cor do Template
                 </label>
                 <select
-                  value={data.theme || (appMode === 'PET' ? 'clean-branco' : 'campo-agro')}
+                  value={data.theme || 'azul-coagro'}
                   onChange={(e) => onChange({ ...data, theme: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                 >
                   {appMode === 'PET' ? (
                     <>
-                      <option value="azul-coagro">Azul Pet (Institucional)</option>
-                      <option value="clean-branco">Branco / Clean (Invertido)</option>
+                      <option value="azul-coagro">Azul Pet (Institucional - Padrão)</option>
                     </>
                   ) : (
                     <>
-                      <option value="campo-agro">Verde Coagro (Institucional)</option>
-                      <option value="azul-coagro">Azul Coagro (Publicitário)</option>
-                      <option value="clean-branco">Branco / Clean (Invertido)</option>
+                      <option value="azul-coagro">Azul Coagro (Titular - Padrão)</option>
+                      <option value="campo-agro">Verde Coagro (Secundária Safra)</option>
                     </>
                   )}
                 </select>
@@ -558,13 +556,12 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                     Fundo Promo Simples
                   </label>
                   <select
-                    value={data.backgroundColorHex || 'branco'}
+                    value={data.backgroundColorHex || 'azul'}
                     onChange={(e) => onChange({ ...data, backgroundColorHex: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                   >
-                    <option value="branco">Branco (Padrão)</option>
+                    <option value="azul">{appMode === 'PET' ? 'Azul Pet (Padrão)' : 'Azul Publicitário (Padrão)'}</option>
                     {appMode !== 'PET' && <option value="verde">Verde Institucional</option>}
-                    <option value="azul">{appMode === 'PET' ? 'Azul Pet' : 'Azul Publicitário'}</option>
                     <option value="laranja">Laranja (Alerta)</option>
                   </select>
                 </div>
