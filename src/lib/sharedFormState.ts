@@ -34,7 +34,7 @@ export function getDefaultSocialManualData(appMode: 'AGRO' | 'PET'): SocialManua
       backgroundColorHex: '',
       theme: 'azul-coagro',
       textBackground: undefined,
-      badge: 'Oferta Pet',
+      badge: 'Sem Selo',
       cta: 'Aproveite a oferta!',
       preserveProductBackground: undefined,
     };
@@ -51,7 +51,7 @@ export function getDefaultSocialManualData(appMode: 'AGRO' | 'PET'): SocialManua
     backgroundColorHex: '',
     theme: 'azul-coagro',
     textBackground: undefined,
-    badge: 'Oferta Campo',
+    badge: 'Sem Selo',
     cta: 'Garanta já o seu!',
     preserveProductBackground: undefined,
   };

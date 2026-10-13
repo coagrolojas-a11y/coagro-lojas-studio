@@ -577,11 +577,18 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                   onChange={(e) => onChange({ ...data, badge: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                 >
-                  <option value="Sem Selo">Sem Selo</option>
+                  <option value="Sem Selo">Sem Selo (Padrão)</option>
                   <option value="OFERTA">Oferta</option>
                   <option value="LANÇAMENTO">Lançamento</option>
                   <option value="SABADÃO">Sabadão</option>
                   <option value="FECHA MÊS">Fecha Mês</option>
+                  <option value="SUPER PREÇO">Super Preço</option>
+                  <option value="LIQUIDAÇÃO">Liquidação</option>
+                  {appMode === 'PET' ? (
+                    <option value="OFERTA PET">Oferta Pet</option>
+                  ) : (
+                    <option value="OFERTA CAMPO">Oferta Campo</option>
+                  )}
                 </select>
               </div>
             </div>

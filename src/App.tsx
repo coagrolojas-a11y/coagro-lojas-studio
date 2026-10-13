@@ -5,6 +5,7 @@ import { LogoVariant } from './assets/coagroLogos';
 import { AGRO_PRESETS } from './data/agroPresets';
 import { Header } from './components/Header';
 import { SingleArtRenderer } from './components/SingleArtRenderer';
+import { InputPanel } from './components/InputPanel';
 import { ExportToolbar } from './components/ExportToolbar';
 import { ExcelBatchUploader, BatchItem } from './components/ExcelBatchUploader';
 import { BatchReviewGrid } from './components/BatchReviewGrid';
@@ -24,14 +25,14 @@ import { Eye, Sparkles, Copy, Download, Columns2, Maximize2, Box, FileText, Prin
 import { BrandHubModule } from './components/brand-hub/BrandHubModule';
 
 export default function App() {
-  // Estado inicial 100% zerado - sem nenhum produto ou texto prÃ©-carregado
+  // Estado inicial 100% zerado - sem nenhum produto ou texto pré-carregado
   const [currentContent, setCurrentContent] = useState<AgroPostContent>(
     EMPTY_AGRO_CONTENT
   );
   const [productImage, setProductImage] = useState<string>('');
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(undefined);
 
-  // App Module State: STORE_POSTERS por padrÃ£o (Preto e Branco A4 prÃ©-selecionado)
+  // App Module State: STORE_POSTERS por padrão (Preto e Branco A4 pré-selecionado)
   const [currentModule, setCurrentModule] = useState<'SOCIAL_MEDIA' | 'STORE_POSTERS' | 'BRAND_HUB'>('STORE_POSTERS');
   const [posterMode, setPosterMode] = useState<'MANUAL' | 'BATCH' | 'REVIEW'>('MANUAL');
   const [posterTemplate, setPosterTemplate] = useState<PosterTemplateLayout>('promo-mono-a4');
@@ -40,26 +41,27 @@ export default function App() {
   const [showDiscountBadge, setShowDiscountBadge] = useState<boolean>(true);
   const [manualPosterData, setManualPosterData] = useState<PosterManualData>({
     codigo: '12345',
-    titulo: 'RAÃ‡ÃƒO TUTTICANIS SELECT 10.1 KG',
+    titulo: 'RAÇÃO TUTTICANIS SELECT 10.1 KG',
     valorDe: '58,00',
     valorPor: '44,00',
     showDiscountBadge: true,
   });
 
-  // App Mode State: AGRO or PET agora lido do Zustand para manter compatibilidade com o resto do cÃ³digo
+  // App Mode State: AGRO or PET agora lido do Zustand para manter compatibilidade com o resto do código
   const { activeScopeId, setScope } = useTenantStore();
   const appMode = activeScopeId === 'pet' ? 'PET' : 'AGRO';
   const handleSetAppMode = (mode: 'AGRO' | 'PET') => {
     setScope(mode === 'PET' ? 'pet' : 'agro');
   };
   
+  const [socialMode, setSocialMode] = useState<'MANUAL' | 'AI_BETA'>('MANUAL');
   const [socialManualData, setSocialManualData] = useState<SocialManualData>(() =>
     getDefaultSocialManualData(appMode)
   );
 
   // Canvas styling states
   const [canvasFormat, setCanvasFormat] = useState<CanvasFormat>('story');
-  const [canvasTheme, setCanvasTheme] = useState<CanvasTheme>('campo-agro');
+  const [canvasTheme, setCanvasTheme] = useState<CanvasTheme>('azul-coagro');
   const [templateLayout, setTemplateLayout] = useState<TemplateLayout>('hero-central');
   const [templateWasManuallySelected, setTemplateWasManuallySelected] = useState(false);
   const [logoVariant, setLogoVariant] = useState<LogoVariant>('h-branca');
@@ -74,10 +76,10 @@ export default function App() {
     }
 
     if (appMode === 'PET') {
-      setCanvasTheme('clean-branco');
+      setCanvasTheme('azul-coagro');
       setTemplateLayout(resolveDefaultTemplate(canvasFormat, 'PET'));
       setLogoVariant('h-azul');
-      // Cartaz fÃ­sico: mantÃ©m Preto e Branco se selecionado; senÃ£o migra para o azul Pet
+      // Cartaz físico: mantém Preto e Branco se selecionado; senão migra para o azul Pet
       setPosterTemplate(prev => (prev === 'promo-mono-a4' ? 'promo-mono-a4' : 'promo-pet-a4'));
       setSocialManualData(prev => {
         if (prev.titulo === 'Pulverizador Costal 16L' || !prev.titulo) {
@@ -85,10 +87,10 @@ export default function App() {
         }
         return {
           ...prev,
-          theme: prev.theme === 'campo-agro' ? 'clean-branco' : prev.theme
+          theme: 'azul-coagro'
         };
       });
-      // Se o conteÃºdo atual for o inicial vazio, ajusta para o vazio de PET
+      // Se o conteúdo atual for o inicial vazio, ajusta para o vazio de PET
       setCurrentContent(prev => {
         const isCurrentEmpty = !prev.textos_hero?.titulo && !prev.textos_da_arte?.titulo_impacto;
         if (isCurrentEmpty) {
@@ -97,18 +99,21 @@ export default function App() {
         return prev;
       });
     } else {
-      setCanvasTheme('campo-agro');
+      setCanvasTheme('azul-coagro');
       setTemplateLayout(resolveDefaultTemplate(canvasFormat, 'AGRO'));
       setLogoVariant('h-branca');
-      // Cartaz fÃ­sico: mantÃ©m Preto e Branco se selecionado; senÃ£o migra para o azul Agro
+      // Cartaz físico: mantém Preto e Branco se selecionado; senão migra para o azul Agro
       setPosterTemplate(prev => (prev === 'promo-mono-a4' ? 'promo-mono-a4' : 'promo-text-only'));
       setSocialManualData(prev => {
-        if (prev.titulo === 'RaÃ§Ã£o Golden Special 15kg' || !prev.titulo) {
+        if (prev.titulo === 'Ração Golden Special 15kg' || !prev.titulo) {
           return getDefaultSocialManualData('AGRO');
         }
-        return prev;
+        return {
+          ...prev,
+          theme: 'azul-coagro'
+        };
       });
-      // Se o conteÃºdo atual for o inicial vazio, ajusta para o vazio de AGRO
+      // Se o conteúdo atual for o inicial vazio, ajusta para o vazio de AGRO
       setCurrentContent(prev => {
         const isCurrentEmpty = !prev.textos_hero?.titulo && !prev.textos_da_arte?.titulo_impacto;
         if (isCurrentEmpty) {
@@ -120,7 +125,7 @@ export default function App() {
   }, [appMode]);
 
   useEffect(() => {
-    // 'branco' nÃ£o existe no tipo CanvasTheme (legado); mantido apenas por tolerÃ¢ncia em runtime.
+    // 'branco' não existe no tipo CanvasTheme (legado); mantido apenas por tolerância em runtime.
     const isLightBackground = canvasTheme === 'clean-branco' || (canvasTheme as string) === 'branco' || socialManualData.theme === 'clean-branco';
     if (isLightBackground) {
       setLogoVariant('h-azul');
@@ -129,7 +134,7 @@ export default function App() {
     }
   }, [canvasTheme, socialManualData.theme]);
 
-  // Ponte de AutomaÃ§Ã£o Segura para Testes Visuais E2E
+  // Ponte de Automação Segura para Testes Visuais E2E
   if (typeof window !== 'undefined') {
     (window as any).__studioTestBridge = {
       setProductImage,
@@ -170,9 +175,9 @@ export default function App() {
           subtitulo: params.subtitle || '',
           valorDe: params.priceDe || '',
           valorPor: params.pricePor || '',
-          diferenciais: ['Tanque anatÃ´mico 16L', 'Bico cÃ´nico regulÃ¡vel', 'VÃ¡lvula de alÃ­vio'],
-          theme: params.theme || (params.scope === 'PET' ? 'clean-branco' : 'campo-agro'),
-          cta: 'PEÃ‡A NO WHATSAPP',
+          diferenciais: ['Tanque anatômico 16L', 'Bico cônico regulável', 'Válvula de alívio'],
+          theme: params.theme || 'azul-coagro',
+          cta: 'PEÇA NO WHATSAPP',
           badge: params.badge || 'Sem Selo',
         };
         setSocialManualData(newManual);
@@ -189,10 +194,10 @@ export default function App() {
             titulo_impacto: params.title || '',
             subtitulo: params.subtitle || '',
             palavra_destaque: '',
-            bullets_tecnicos: ['Tanque anatÃ´mico 16L', 'Bico cÃ´nico regulÃ¡vel', 'VÃ¡lvula de alÃ­vio'],
-            cta: 'PEÃ‡A NO WHATSAPP',
+            bullets_tecnicos: ['Tanque anatômico 16L', 'Bico cônico regulável', 'Válvula de alívio'],
+            cta: 'PEÇA NO WHATSAPP',
           },
-          diferenciais_tecnicos: ['Tanque anatÃ´mico 16L', 'Bico cÃ´nico regulÃ¡vel', 'VÃ¡lvula de alÃ­vio'],
+          diferenciais_tecnicos: ['Tanque anatômico 16L', 'Bico cônico regulável', 'Válvula de alívio'],
           modulo_preco: {
             ativo: Boolean(params.pricePor),
             valor_de: params.priceDe || '',
@@ -274,7 +279,7 @@ export default function App() {
 
   // Auto-save to Google Drive in background for internal comparison
   const triggerDriveAutoSave = async (contentToSave: AgroPostContent) => {
-    // Blindagem offline: nÃ£o tenta upload em background se o navegador estiver sem conexÃ£o
+    // Blindagem offline: não tenta upload em background se o navegador estiver sem conexão
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       return;
     }
@@ -295,7 +300,7 @@ export default function App() {
             name: `Coagro_Agro_${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`,
             mimeType: 'image/png',
             data: dataUrl,
-            description: `Auto-salvo internamente para fins de comparaÃ§Ã£o.\nLegenda: ${contentToSave.legenda_instagram || contentToSave.legenda_post || ''}`,
+            description: `Auto-salvo internamente para fins de comparação.\nLegenda: ${contentToSave.legenda_instagram || contentToSave.legenda_post || ''}`,
           });
           console.log('Design salvo automaticamente no Google Drive.');
         } catch (e) {
@@ -318,10 +323,10 @@ export default function App() {
     try {
       const el = document.getElementById(elementId);
       if (!el) {
-        showNotice('âš ï¸ Elemento da arte nÃ£o encontrado.');
+        showNotice('⚠️ Elemento da arte não encontrado.');
         return;
       }
-      showNotice('â³ Gerando imagem em alta resoluÃ§Ã£o...');
+      showNotice('⏳ Gerando imagem em alta resolução...');
       const isLandscape = currentModule === 'STORE_POSTERS' && posterGridFormat === '2_PER_PAGE';
       const isPoster = currentModule === 'STORE_POSTERS';
       // 300 DPI em folha A4: 2480x3508px (Retrato) ou 3508x2480px (Paisagem)
@@ -336,7 +341,7 @@ export default function App() {
       link.download = filename;
       link.href = dataUrl;
       link.click();
-      showNotice(`âœ… Imagem salva em Downloads (${filename})`);
+      showNotice(`✅ Imagem salva em Downloads (${filename})`);
     } catch (err: any) {
       alert('Erro ao gerar imagem: ' + err.message);
     }
@@ -346,10 +351,10 @@ export default function App() {
     try {
       const el = document.getElementById(elementId);
       if (!el) {
-        showNotice('âš ï¸ Elemento da arte nÃ£o encontrado.');
+        showNotice('⚠️ Elemento da arte não encontrado.');
         return;
       }
-      showNotice('â³ Preparando arquivo PDF em 300 DPI...');
+      showNotice('⏳ Preparando arquivo PDF em 300 DPI...');
       const isLandscape = currentModule === 'STORE_POSTERS' && posterGridFormat === '2_PER_PAGE';
       const isPoster = currentModule === 'STORE_POSTERS';
       // 300 DPI em folha A4: 2480x3508px (Retrato) ou 3508x2480px (Paisagem)
@@ -372,7 +377,7 @@ export default function App() {
       const prefix = appMode === 'PET' ? 'coagro-pet' : 'coagro-agro';
       const filename = `${prefix}-${suffix}-${Date.now()}.pdf`;
       pdf.save(filename);
-      showNotice(`âœ… PDF 300 DPI salvo em Downloads (${filename})! Para imprimir direto, use o botÃ£o "Imprimir".`);
+      showNotice(`✅ PDF 300 DPI salvo em Downloads (${filename})! Para imprimir direto, use o botão "Imprimir".`);
     } catch (err: any) {
       alert('Erro ao gerar PDF: ' + err.message);
     }
@@ -382,10 +387,10 @@ export default function App() {
     try {
       const el = document.getElementById(elementId);
       if (!el) {
-        showNotice('âš ï¸ Elemento da arte nÃ£o encontrado para impressÃ£o.');
+        showNotice('⚠️ Elemento da arte não encontrado para impressão.');
         return;
       }
-      showNotice('ðŸ–¨ï¸ Abrindo diÃ¡logo de impressÃ£o...');
+      showNotice('🖨️ Abrindo diálogo de impressão...');
       const isLandscape = currentModule === 'STORE_POSTERS' && posterGridFormat === '2_PER_PAGE';
       const isPoster = currentModule === 'STORE_POSTERS';
       const targetWidth = isLandscape ? 3508 : 2480;
@@ -394,7 +399,7 @@ export default function App() {
         : 2.5;
       const dataUrl = await toPng(el, { quality: 1, pixelRatio, cacheBust: true });
       
-      // Iframe invisÃ­vel para disparar impressÃ£o nativa - 100% imune a bloqueador de pop-ups
+      // Iframe invisível para disparar impressão nativa - 100% imune a bloqueador de pop-ups
       let iframe = document.getElementById('coagro-print-frame') as HTMLIFrameElement | null;
       if (!iframe) {
         iframe = document.createElement('iframe');
@@ -410,7 +415,7 @@ export default function App() {
 
       const frameDoc = iframe.contentWindow?.document || iframe.contentDocument;
       if (!frameDoc || !iframe.contentWindow) {
-        alert('NÃ£o foi possÃ­vel acessar a janela de impressÃ£o nativa.');
+        alert('Não foi possível acessar a janela de impressão nativa.');
         return;
       }
 
@@ -464,11 +469,11 @@ export default function App() {
         triggerPrint();
       }
     } catch (err: any) {
-      alert('Erro ao preparar impressÃ£o: ' + (err?.message || err));
+      alert('Erro ao preparar impressão: ' + (err?.message || err));
     }
   };
 
-  // Content Generation API Call - Tratado estritamente como nova instÃ¢ncia isolada
+  // Content Generation API Call - Tratado estritamente como nova instância isolada
   const handleGenerateContent = async (params: {
     imageBase64?: string;
     mimeType?: string;
@@ -490,12 +495,12 @@ export default function App() {
     try {
       setIsGenerating(true);
 
-      // Limpeza ativa de contexto anterior para garantir nova instÃ¢ncia limpa
+      // Limpeza ativa de contexto anterior para garantir nova instância limpa
       if (params.isNewImage) {
         setBackgroundImage(undefined);
       }
 
-      // ConstrÃ³i payload limpo sem resquÃ­cios de estados ou imagens anteriores
+      // Constrói payload limpo sem resquícios de estados ou imagens anteriores
       const payload = {
         imageBase64: params.imageBase64,
         mimeType: params.mimeType || 'image/jpeg',
@@ -536,7 +541,7 @@ export default function App() {
         generatedData.formato_gerado?.toLowerCase() === 'story' ||
         generatedData.formato?.toLowerCase() === 'story';
 
-      // A recomendaÃ§Ã£o inteligente da IA define o melhor layout para o item (ex: split para mÃ¡quinas)
+      // A recomendação inteligente da IA define o melhor layout para o item (ex: split para máquinas)
       let resolvedLayout = generatedData.template_layout;
       if (!resolvedLayout && !templateWasManuallySelected) {
         resolvedLayout = generatedIsStory ? resolveDefaultTemplate('story') : resolveDefaultTemplate('feed-quadrado');
@@ -585,8 +590,8 @@ export default function App() {
       // Trigger background auto-save to Google Drive
       triggerDriveAutoSave(generatedData);
     } catch (err: any) {
-      console.error('Erro na geraÃ§Ã£o:', err);
-      alert('Erro ao gerar conteÃºdo AGRO: ' + err.message);
+      console.error('Erro na geração:', err);
+      alert('Erro ao gerar conteúdo AGRO: ' + err.message);
     } finally {
       setIsGenerating(false);
     }
@@ -630,7 +635,7 @@ export default function App() {
                 <Box className="w-4 h-4" />
                 Cartazes de Loja (A4)
               </button>
-              {/* Brand Hub & Documentos (Pausado nesta versÃ£o conforme solicitaÃ§Ã£o) */}
+              {/* Brand Hub & Documentos (Pausado nesta versão conforme solicitação) */}
               {false && (
                 <button
                   onClick={() => setCurrentModule('BRAND_HUB')}
@@ -654,29 +659,72 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Input and Processing Engine Controls (5 cols) */}
           <div className="lg:col-span-5 space-y-5">
-            <SocialManualEditor
-              appMode={appMode}
-              onAppModeChange={handleSetAppMode}
-              templateLayout={templateLayout}
-              onTemplateChange={handleSelectTemplate}
-              format={canvasFormat}
-              onFormatChange={handleSelectFormat}
-              data={socialManualData}
-              onChange={(newData) => {
-                setSocialManualData(newData);
-                if (newData.theme) {
-                  setCanvasTheme(newData.theme as any);
-                }
-                setCurrentContent(syncSocialManualDataToContent(newData, appMode));
-                if (newData.backgroundImageUrl) {
-                  setBackgroundImage(newData.backgroundImageUrl);
-                } else {
-                  setBackgroundImage(undefined);
-                }
-              }}
-              productImage={productImage}
-              onSetProductImage={setProductImage}
-            />
+            {/* AI Mode Hidden for MVP */}
+            {false && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 flex items-center justify-center gap-2">
+                <button 
+                  onClick={() => {
+                    setSocialMode('MANUAL');
+                    setTemplateLayout('unified-central');
+                  }}
+                  className={`flex-1 py-2 text-sm font-bold rounded-xl transition ${socialMode === 'MANUAL' ? (appMode === 'PET' ? 'bg-[#001C71] text-white' : 'bg-[#004d40] text-white') : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Criação Manual
+                </button>
+                <button 
+                  onClick={() => setSocialMode('AI_BETA')}
+                  className={`flex-1 py-2 text-sm font-bold rounded-xl transition flex items-center justify-center gap-2 ${socialMode === 'AI_BETA' ? (appMode === 'PET' ? 'bg-[#001C71] text-white' : 'bg-[#004d40] text-white') : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Gerar com IA
+                  <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded uppercase">Beta</span>
+                </button>
+              </div>
+            )}
+
+            {socialMode === 'MANUAL' ? (
+              <SocialManualEditor
+                appMode={appMode}
+                onAppModeChange={handleSetAppMode}
+                templateLayout={templateLayout}
+                onTemplateChange={handleSelectTemplate}
+                format={canvasFormat}
+                onFormatChange={handleSelectFormat}
+                data={socialManualData}
+                onChange={(newData) => {
+                  setSocialManualData(newData);
+                  if (newData.theme) {
+                    setCanvasTheme(newData.theme as any);
+                  }
+                  setCurrentContent(syncSocialManualDataToContent(newData, appMode));
+                  if (newData.backgroundImageUrl) {
+                    setBackgroundImage(newData.backgroundImageUrl);
+                  } else {
+                    setBackgroundImage(undefined);
+                  }
+                }}
+                productImage={productImage}
+                onSetProductImage={setProductImage}
+              />
+            ) : (
+              <InputPanel
+                appMode={appMode}
+                onSetAppMode={handleSetAppMode}
+                onGenerateContent={handleGenerateContent}
+                onSelectPreset={handleSelectPreset}
+                isGenerating={isGenerating}
+                currentImage={productImage}
+                onSetProductImage={(url) => setProductImage(url)}
+                currentContent={currentContent}
+                onUpdateContent={(updated) => setCurrentContent(updated)}
+                selectedFormat={canvasFormat}
+                onSelectFormat={handleSelectFormat}
+                selectedTemplate={templateLayout}
+                onSelectTemplate={handleSelectTemplate}
+                imageBoxFormat={imageBoxFormat}
+                onSelectImageBoxFormat={setImageBoxFormat}
+              />
+            )}
+
             {/* Quick Caption & Legend Preview (Official Instagram text) */}
             {(currentContent.legenda_instagram || currentContent.legenda_post) && (
               <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-2xs space-y-2">
@@ -684,7 +732,7 @@ export default function App() {
                   <span className="text-xs font-bold uppercase tracking-wider text-gray-700 font-exo2">
                     Legenda Oficial Gerada
                   </span>
-                  <span className="text-[10px] text-gray-400 font-mono">Com hashtags tÃ©cnicas</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Com hashtags técnicas</span>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-700 leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap font-sans relative group">
                   {currentContent.legenda_instagram || currentContent.legenda_post}
@@ -737,7 +785,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   {titleCharCount > 0 && (
                     <span
-                      title="Limite ideal para redes sociais: atÃ© 28 caracteres garantem leitura rÃ¡pida e impacto mÃ¡ximo em Stories e Feed"
+                      title="Limite ideal para redes sociais: até 28 caracteres garantem leitura rápida e impacto máximo em Stories e Feed"
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
                         isTitleIdeal
                           ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
@@ -747,13 +795,13 @@ export default function App() {
                       }`}
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      <span>TÃ­tulo: {titleCharCount}/28 chars</span>
-                      <span className="opacity-60">â€¢</span>
-                      <span>{isTitleIdeal ? 'Limite Ideal' : isTitleWarning ? 'Limite Recomendado' : 'TÃ­tulo Longo'}</span>
+                      <span>Título: {titleCharCount}/28 chars</span>
+                      <span className="opacity-60">•</span>
+                      <span>{isTitleIdeal ? 'Limite Ideal' : isTitleWarning ? 'Limite Recomendado' : 'Título Longo'}</span>
                     </span>
                   )}
                   <span className="text-[11px] font-mono text-gray-500 hidden sm:inline">
-                    Vetor Oficial Coagro â€¢ Cores da Marca
+                    Vetor Oficial Coagro • Cores da Marca
                   </span>
                 </div>
               </div>
@@ -767,7 +815,7 @@ export default function App() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#004d40] font-exo2">
-                        Fundo FotogrÃ¡fico Otimizado (IA Aplicado):
+                        Fundo Fotográfico Otimizado (IA Aplicado):
                       </span>
                     </div>
                     <p className="text-[11px] text-gray-700 leading-snug italic line-clamp-2 mt-0.5">
@@ -823,7 +871,7 @@ export default function App() {
         ) : currentModule === 'STORE_POSTERS' ? (
           /* STORE POSTERS MODULE */
           <div className="space-y-4">
-            {/* Mode Switcher: Individual vs Lote vs RevisÃ£o */}
+            {/* Mode Switcher: Individual vs Lote vs Revisão */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-1.5 max-w-lg mx-auto flex flex-wrap items-center justify-center gap-2">
               <button 
                 onClick={() => setPosterMode('MANUAL')}
@@ -837,13 +885,13 @@ export default function App() {
               >
                 Lote (Simples)
               </button>
-              {/* CorreÃ§Ã£o/RevisÃ£o Hidden for MVP */}
+              {/* Correção/Revisão Hidden for MVP */}
               {false && (
                 <button 
                   onClick={() => setPosterMode('REVIEW')}
                   className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition ${posterMode === 'REVIEW' ? 'bg-[#d67022] text-white shadow-xs' : 'text-gray-500 hover:bg-gray-100'}`}
                 >
-                  CorreÃ§Ã£o/RevisÃ£o
+                  Correção/Revisão
                 </button>
               )}
             </div>
@@ -852,27 +900,27 @@ export default function App() {
               <BatchReviewGrid onStartExport={handleStartBatchFromGrid} scope={appMode} />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Coluna da Esquerda (ConfiguraÃ§Ãµes e ConteÃºdo - 7 cols) */}
+                {/* Coluna da Esquerda (Configurações e Conteúdo - 7 cols) */}
                 <div className="lg:col-span-7 space-y-6">
-                  {/* 1. TÃTULO DA ETIQUETA (1Âº Lugar na Hierarquia Visual Solicitada) */}
+                  {/* 1. TÍTULO DA ETIQUETA (1º Lugar na Hierarquia Visual Solicitada) */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 flex flex-col gap-2">
-                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">TÃ­tulo da Etiqueta</span>
+                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Título da Etiqueta</span>
                     <select
                       value={posterHeaderText}
                       onChange={(e) => setPosterHeaderText(e.target.value)}
                       className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-800 bg-gray-50 focus:ring-[#004d40] focus:border-[#004d40] transition cursor-pointer"
                     >
                       <option value="OFERTA">OFERTA</option>
-                      <option value="LIQUIDAÃ‡ÃƒO">LIQUIDAÃ‡ÃƒO</option>
-                      <option value="PROMOÃ‡ÃƒO">PROMOÃ‡ÃƒO</option>
-                      <option value="SUPER PREÃ‡O">SUPER PREÃ‡O</option>
+                      <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
+                      <option value="PROMOÇÃO">PROMOÇÃO</option>
+                      <option value="SUPER PREÇO">SUPER PREÇO</option>
                       <option value="ESPECIAL">ESPECIAL</option>
                       <option value="NOVIDADE">NOVIDADE</option>
-                      <option value="PREÃ‡O BAIXO">PREÃ‡O BAIXO</option>
+                      <option value="PREÇO BAIXO">PREÇO BAIXO</option>
                     </select>
                   </div>
 
-                  {/* 2. MODELO VISUAL (2Âº Lugar na Hierarquia com InversÃ£o de Cores e Toggle de Selo de Desconto) */}
+                  {/* 2. MODELO VISUAL (2º Lugar na Hierarquia com Inversão de Cores e Toggle de Selo de Desconto) */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 flex flex-col gap-3">
                     <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Modelo Visual</span>
                     <div className="flex flex-col sm:flex-row items-stretch gap-2">
@@ -926,7 +974,7 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Controle Unificado de ExibiÃ§Ã£o do Selo de Desconto (vÃ¡lido para Individual e Lote Simples) */}
+                    {/* Controle Unificado de Exibição do Selo de Desconto (válido para Individual e Lote Simples) */}
                     <label className="flex items-center gap-2 mt-1 pt-2 border-t border-gray-100 text-xs font-semibold text-gray-700 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -942,12 +990,12 @@ export default function App() {
                     </label>
                   </div>
 
-                  {/* 3. EDITOR DE CONTEÃšDO (Individual Manual ou Lote Simples) */}
+                  {/* 3. EDITOR DE CONTEÚDO (Individual Manual ou Lote Simples) */}
                   {posterMode === 'BATCH' ? (
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
-                      <h2 className="text-2xl font-bold text-gray-800 font-exo2 mb-2">Cartazes FÃ­sicos (Lote)</h2>
+                      <h2 className="text-2xl font-bold text-gray-800 font-exo2 mb-2">Cartazes Físicos (Lote)</h2>
                       <p className="text-gray-500 text-sm mb-6">
-                        Importe a planilha e o sistema renderizarÃ¡ automaticamente todas as etiquetas para impressÃ£o.
+                        Importe a planilha e o sistema renderizará automaticamente todas as etiquetas para impressão.
                       </p>
                       <ExcelBatchUploader 
                         onProcessBatch={(items, format) => handleStartBatch(items, format)} 
@@ -969,21 +1017,21 @@ export default function App() {
                           badge: posterHeaderText,
                         }));
                         setCurrentModule('SOCIAL_MEDIA');
-                        showNotice('âœ… Dados do cartaz transferidos para Redes Sociais!');
+                        showNotice('✅ Dados do cartaz transferidos para Redes Sociais!');
                       }}
                     />
                   )}
                 </div>
 
-                {/* Coluna da Direita (Preview e ImpressÃ£o - 5 cols) */}
+                {/* Coluna da Direita (Preview e Impressão - 5 cols) */}
                 <div className="lg:col-span-5 flex flex-col items-center gap-3 w-full">
-                  {/* Formato da Folha para ImpressÃ£o (Posicionado Acima do Cartaz no Desktop) */}
+                  {/* Formato da Folha para Impressão (Posicionado Acima do Cartaz no Desktop) */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 flex flex-col gap-2 w-full max-w-[420px]">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                        Formato da Folha para ImpressÃ£o
+                        Formato da Folha para Impressão
                       </span>
-                      <span className="text-[10px] font-mono text-gray-400">PadrÃ£o A4 Loja</span>
+                      <span className="text-[10px] font-mono text-gray-400">Padrão A4 Loja</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <button
@@ -996,7 +1044,7 @@ export default function App() {
                         }`}
                       >
                         <span className="font-exo2 uppercase text-[11px]">1 por Folha</span>
-                        <span className="text-[9px] opacity-75 font-normal">A4 Cheio (210Ã—297)</span>
+                        <span className="text-[9px] opacity-75 font-normal">A4 Cheio (210×297)</span>
                       </button>
                       <button
                         type="button"
@@ -1010,7 +1058,7 @@ export default function App() {
                         <span className="font-exo2 uppercase text-[11px] flex items-center gap-1">
                           2 por Folha
                         </span>
-                        <span className="text-[9px] opacity-75 font-normal">A5 Meia-Folha âœ‚ï¸</span>
+                        <span className="text-[9px] opacity-75 font-normal">A5 Meia-Folha ✂️</span>
                       </button>
                       <button
                         type="button"
@@ -1022,7 +1070,7 @@ export default function App() {
                         }`}
                       >
                         <span className="font-exo2 uppercase text-[11px]">4 por Folha</span>
-                        <span className="text-[9px] opacity-75 font-normal">GÃ´ndola 2Ã—2 âœ‚ï¸</span>
+                        <span className="text-[9px] opacity-75 font-normal">Gôndola 2×2 ✂️</span>
                       </button>
                     </div>
                   </div>
@@ -1031,7 +1079,7 @@ export default function App() {
                   <div className="flex items-center justify-between w-full max-w-[420px] px-1">
                     <div className="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-wider font-exo2 flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5 text-[#004d40]" />
-                      <span>Preview ({posterGridFormat === '2_PER_PAGE' ? 'A5 Duplo' : posterGridFormat === '4_PER_PAGE' ? 'Grade 2Ã—2' : 'A4 Cheio'})</span>
+                      <span>Preview ({posterGridFormat === '2_PER_PAGE' ? 'A5 Duplo' : posterGridFormat === '4_PER_PAGE' ? 'Grade 2×2' : 'A4 Cheio'})</span>
                     </div>
                     {(() => {
                       const discount = calculateDiscount(manualPosterData.valorDe, manualPosterData.valorPor);
@@ -1111,7 +1159,7 @@ export default function App() {
                     )}
                   </PosterSheetContainer>
                   
-                  {/* BotÃµes de AÃ§Ã£o Final (PNG, PDF, Imprimir) */}
+                  {/* Botões de Ação Final (PNG, PDF, Imprimir) */}
                   <div className="flex w-full max-w-[420px] gap-2 mt-2">
                     <button
                       onClick={() => handleDownloadCanvas('preview-poster-a4', `cartaz-${posterGridFormat.toLowerCase()}`)}
@@ -1124,7 +1172,7 @@ export default function App() {
                     <button
                       onClick={() => handleDownloadPdf('preview-poster-a4', `cartaz-${posterGridFormat.toLowerCase()}`)}
                       className="flex-1 py-3 bg-[#004d40] hover:bg-[#00382e] text-white rounded-xl text-xs sm:text-sm font-bold font-exo2 tracking-wide uppercase flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition active:scale-95 cursor-pointer"
-                      title="Baixar arquivo PDF no tamanho exato para impressÃ£o fÃ­sica"
+                      title="Baixar arquivo PDF no tamanho exato para impressão física"
                     >
                       <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                       PDF
@@ -1143,7 +1191,7 @@ export default function App() {
             )}
           </div>
         ) : currentModule === 'BRAND_HUB' ? (
-          /* BRAND HUB & GOVERNANCE MODULE (Pausado nesta versÃ£o) */
+          /* BRAND HUB & GOVERNANCE MODULE (Pausado nesta versão) */
           <BrandHubModule scope={appMode} onShowNotice={showNotice} />
         ) : null}
       </main>
@@ -1162,7 +1210,7 @@ export default function App() {
         />
       )}
 
-      {/* 4. NotificaÃ§Ã£o Toast de Download e ImpressÃ£o */}
+      {/* 4. Notificação Toast de Download e Impressão */}
       {downloadNotice && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#004d40] text-white px-5 py-3 rounded-2xl shadow-2xl border border-[#ffab00]/50 flex items-center gap-3 transition-all duration-300 pointer-events-none">
           <span className="font-exo2 font-bold text-xs sm:text-sm tracking-wide">{downloadNotice}</span>

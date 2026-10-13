@@ -20,7 +20,7 @@ describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', 
       const data = getDefaultSocialManualData('AGRO');
       expect(data.titulo).toBe('Pulverizador Costal 16L');
       expect(data.theme).toBe('azul-coagro');
-      expect(data.badge).toBe('Oferta Campo');
+      expect(data.badge).toBe('Sem Selo');
       expect(data.titulo).not.toContain('Ração');
     });
 
@@ -28,7 +28,7 @@ describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', 
       const data = getDefaultSocialManualData('PET');
       expect(data.titulo).toBe('Ração Golden Special 15kg');
       expect(data.theme).toBe('azul-coagro');
-      expect(data.badge).toBe('Oferta Pet');
+      expect(data.badge).toBe('Sem Selo');
       expect(data.titulo).not.toContain('Pulverizador');
     });
   });
