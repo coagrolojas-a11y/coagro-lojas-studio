@@ -158,7 +158,16 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
         </h3>
         
         {items.length === 0 && (
-          <div>
+          <div className="flex items-center gap-2">
+            <a 
+              href="/Modelo_Troca_de_Precos.xlsx" 
+              download="Modelo_Troca_de_Precos.xlsx"
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              title="Baixar planilha modelo com exemplos (.xlsx)"
+            >
+              <Download className="w-3.5 h-3.5 text-gray-600" />
+              <span>Baixar Modelo</span>
+            </a>
             <input 
               type="file" 
               accept=".xlsx, .xls, .csv" 
@@ -169,7 +178,7 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
             <button 
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessing}
-              className="px-4 py-2 bg-[#004d40] hover:bg-[#00382e] text-white rounded-xl text-xs font-bold transition flex items-center gap-2"
+              className="px-4 py-2 bg-[#004d40] hover:bg-[#00382e] text-white rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer"
             >
               {isProcessing ? <span className="animate-pulse">Lendo...</span> : 'Selecionar Planilha'}
             </button>
