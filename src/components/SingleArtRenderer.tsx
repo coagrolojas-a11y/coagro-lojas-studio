@@ -29,10 +29,10 @@ import { PromoMonoA4 } from './art-renderer/templates/PromoMonoA4';
 import { UnifiedCentral } from './art-renderer/templates/UnifiedCentral';
 import { UnifiedSplit } from './art-renderer/templates/UnifiedSplit';
 // NOTA: os templates de mascote (UnifiedCentralWithMascot / UnifiedSplitWithMascot)
-// permanecem no repositÃ³rio como acervo para a Fase 3 do roadmap (templates
-// desenhados especificamente para os personagens). Eles NÃƒO sÃ£o referenciados
-// aqui porque os grids genÃ©ricos de produto deformam a proporÃ§Ã£o dos mascotes â€”
-// 
+// permanecem no repositório como acervo para a Fase 3 do roadmap (templates
+// desenhados especificamente para os personagens). Eles NÃO são referenciados
+// aqui porque os grids genéricos de produto deformam a proporção dos mascotes —
+// ver ROADMAP_COAGRO_STUDIO.md §3.
 import { InformativeCentral } from './art-renderer/templates/InformativeCentral';
 import { InformativeSplit } from './art-renderer/templates/InformativeSplit';
 import { PromoSimples } from './art-renderer/templates/PromoSimples';
@@ -51,7 +51,7 @@ interface SingleArtRendererProps {
   imageBoxFormat?: 'rectangular' | 'square';
   codigoProduto?: string;
   preserveProductBackground?: boolean;
-  scopeOverride?: ScopeId; // Modo manual/tenant: forÃ§a a marca (ver brand.config.ts)
+  scopeOverride?: ScopeId; // Modo manual/tenant: força a marca (ver brand.config.ts)
   discountBadge?: string; // Selo de desconto calculado (ex: "24% OFF")
 }
 
@@ -73,22 +73,22 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
 }) => {
   const isStory = format === 'story';
 
-  // 3. FALLBACK DE RENDERIZAÃ‡ÃƒO
+  // 3. FALLBACK DE RENDERIZAÇÃO
   const [forceFallbackTemplate, setForceFallbackTemplate] = useState<string | null>(null);
 
-  // ResoluÃ§Ã£o determinÃ­stica do Modo de ComunicaÃ§Ã£o (RF-01, RF-02, RF-06)
+  // Resolução determinística do Modo de Comunicação (RF-01, RF-02, RF-06)
   const price = content.modulo_preco || content.textos_da_arte?.modulo_preco;
   const mode = resolveCommunicationMode(content.tipo_postagem, price);
   const hasPrice = mode !== 'INFORMATIVE' && !!price?.valor_por;
 
-  // No Story 9:16, Hero Central Ã© o padrÃ£o recomendado (RF-03)
+  // No Story 9:16, Hero Central é o padrão recomendado (RF-03)
   const initialTemplate =
     forceFallbackTemplate ||
     templateLayout ||
     content.template_layout ||
     'promo-simples';
 
-  // 4. AUTO-ROTEAMENTO (INFERÃŠNCIA DE TEMPLATE)
+  // 4. AUTO-ROTEAMENTO (INFERÊNCIA DE TEMPLATE)
   let activeTemplate = initialTemplate;
   if (!hasPrice) {
     if (!activeTemplate.includes('informative')) {
@@ -98,7 +98,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
 
   const isSplit = activeTemplate.toLowerCase().includes('split');
 
-  // NormalizaÃ§Ã£o de textos com limpeza de ruÃ­dos - SEM valores prÃ©-selecionados
+  // Normalização de textos com limpeza de ruídos - SEM valores pré-selecionados
   const rawTitle =
     content.textos_hero?.titulo ||
     content.textos_da_arte?.titulo_impacto ||
@@ -139,22 +139,22 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
     rawCta || (title ? resolveDefaultCta(mode, content.categoria_produto) : '')
   );
 
-  // ResoluÃ§Ã£o de Temas e Fundos FotogrÃ¡ficos (RF-08)
+  // Resolução de Temas e Fundos Fotográficos (RF-08)
   const effectiveTheme = theme || content.tema || 'campo-agro';
   const isLight = effectiveTheme === 'clean-branco';
   const isBlue = effectiveTheme === 'azul-coagro';
 
-  // â”€â”€ FONTE ÃšNICA DE ESCOPO (correÃ§Ãµes P1.1 / P1.2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // O escopo/marca NUNCA Ã© inferido da cor de fundo. A precedÃªncia Ã© explÃ­cita:
-  //   1. `scopeOverride` â€” modo do app / tenant ativo (fonte de verdade);
-  //   2. `content.linha` â€” linha de negÃ³cio do prÃ³prio conteÃºdo (planilha/IA);
+  // ── FONTE ÚNICA DE ESCOPO (correções P1.1 / P1.2) ──────────────────────────
+  // O escopo/marca NUNCA é inferido da cor de fundo. A precedência é explícita:
+  //   1. `scopeOverride` — modo do app / tenant ativo (fonte de verdade);
+  //   2. `content.linha` — linha de negócio do próprio conteúdo (planilha/IA);
   //   3. DEFAULT_SCOPE.
-  // Isso elimina a heurÃ­stica antiga (tema 'clean-branco'/'azul-coagro' â‡’ PET),
+  // Isso elimina a heurística antiga (tema 'clean-branco'/'azul-coagro' ⇒ PET),
   // que impedia uma marca de usar qualquer paleta livremente (ver Fase 4).
   const scope = normalizeScopeId(scopeOverride ?? content.linha);
 
   // A logo segue a MARCA. `isLight` decide apenas a variante claro/escuro da
-  // marca. Escopos com logotipo prÃ³prio (PET) sÃ£o resolvidos no ArtHeader.
+  // marca. Escopos com logotipo próprio (PET) são resolvidos no ArtHeader.
   const logo = resolveLogoVariant(isLight, logoVariant);
 
   const activeBackground = resolveBackgroundFromPrompt(
@@ -169,7 +169,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
 
   const backgroundStyle: React.CSSProperties = resolveBackgroundStyle(scope, isLight, isBlue);
 
-  // Processamento do produto: sem produto padrÃ£o, comeÃ§a vazio se nÃ£o fornecido
+  // Processamento do produto: sem produto padrão, começa vazio se não fornecido
   const sourceProduct = productImage || '';
   const [processedProduct, setProcessedProduct] = useState(sourceProduct);
   const [adaptiveInfo, setAdaptiveInfo] = useState<AdaptiveProductInfo>({
@@ -212,7 +212,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
         if (!mounted) return;
         setProcessedProduct(transparentImg);
 
-        // Calcula bounding box alfa e faz tight crop para ancoragem fÃ­sica pela base
+        // Calcula bounding box alfa e faz tight crop para ancoragem física pela base
         const adaptive = await processAdaptiveProduct(transparentImg);
         if (mounted) {
           setAdaptiveInfo(adaptive);
@@ -248,10 +248,10 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
   const canvasClasses = `@container w-full ${format === 'a4-retrato' ? 'h-full' : ''} ${aspectClass} relative overflow-hidden font-['Inter']`;
   const { titleColor, subtitleColor, highlightColor } = getPalette(scope, isLight);
 
-  // A imagem final do produto usa o recorte justo dos pixels visÃ­veis (tight crop) para ancoragem pela base
+  // A imagem final do produto usa o recorte justo dos pixels visíveis (tight crop) para ancoragem pela base
   const finalProductImg = adaptiveInfo.croppedSrc || processedProduct;
 
-  // Estado totalmente zerado: sem imagem e sem tÃ­tulo e sem benefÃ­cios
+  // Estado totalmente zerado: sem imagem e sem título e sem benefícios
   const isArtEmpty = !sourceProduct && !title && benefits.length === 0;
 
   return (
@@ -423,21 +423,22 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             textBackground={false}
           />
         ) : activeTemplate === 'pet-central' ? (
-            <PetCentral
+          <PetCentral
             codigo={codigoProduto}
-              title={title}
-              highlight={highlight}
-              subtitle={subtitle}
-              processedProduct={finalProductImg}
-              isStory={isStory}
-              mode={mode}
-              hasPrice={hasPrice}
-              currentPrice={currentPrice}
-              oldPrice={oldPrice}
-              condition={condition}
-              benefits={benefits}
-              renderizacao={content.renderizacao_visual}
-            />
+            badge={badgeText}
+            title={title}
+            highlight={highlight}
+            subtitle={subtitle}
+            processedProduct={finalProductImg}
+            isStory={isStory}
+            mode={mode}
+            hasPrice={hasPrice}
+            currentPrice={currentPrice}
+            oldPrice={oldPrice}
+            condition={condition}
+            benefits={benefits}
+            renderizacao={content.renderizacao_visual}
+          />
         ) : activeTemplate === 'pet-split' || activeTemplate === 'pet-split-vertical' ? (
           <PetSplitVertical
             codigo={codigoProduto}
@@ -508,8 +509,12 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
         )}
 
         {/* Selo Promocional Flutuante (Injetado via SingleArtRenderer) */}
-        {badgeText && !['promo-text-only', 'promo-agro-a4', 'promo-mono-a4', 'promo-pet-a4', 'promo-pet-orange-a4'].includes(activeTemplate) && (
-          <div className="absolute top-5 right-5 z-50 bg-[#ffab00] text-[#004d40] px-3 py-1 rounded-tl-xl rounded-br-xl font-exo2 font-black uppercase text-[13px] sm:text-[15px] shadow-lg border border-[#004d40]/20 transform rotate-3">
+        {badgeText && badgeText !== 'Sem Selo' && !['promo-text-only', 'promo-agro-a4', 'promo-mono-a4', 'promo-pet-a4', 'promo-pet-orange-a4', 'whatsapp-status', 'pet-central', 'promo-simples'].includes(activeTemplate) && (
+          <div className={`absolute top-5 right-5 z-50 px-3 py-1 rounded-tl-xl rounded-br-xl font-exo2 font-black uppercase text-[13px] sm:text-[15px] shadow-lg transform rotate-3 ${
+            scope === 'PET' 
+              ? 'bg-[#ffab00] text-[#001C71] border border-[#001C71]/20' 
+              : 'bg-[#ffab00] text-[#004d40] border border-[#004d40]/20'
+          }`}>
             {badgeText}
           </div>
         )}

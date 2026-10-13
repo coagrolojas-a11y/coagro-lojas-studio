@@ -89,6 +89,7 @@ export default function App() {
           ...prev,
           theme: 'clean-branco',
           backgroundColorHex: 'branco',
+          badge: 'Sem Selo',
         };
       });
       // Se o conteúdo atual for o inicial vazio, ajusta para o vazio de PET
@@ -113,6 +114,7 @@ export default function App() {
           ...prev,
           theme: 'azul-coagro',
           backgroundColorHex: '',
+          badge: 'Sem Selo',
         };
       });
       // Se o conteúdo atual for o inicial vazio, ajusta para o vazio de AGRO
@@ -844,7 +846,7 @@ export default function App() {
                     backgroundImage={backgroundImage}
                     containerId="agro-canvas-main"
                     imageBoxFormat={imageBoxFormat}
-                    badgeText={socialManualData.badge !== 'Sem Selo' ? socialManualData.badge : undefined}
+                    badgeText={socialManualData.badge && socialManualData.badge !== 'Sem Selo' ? socialManualData.badge : undefined}
                     preserveProductBackground={socialManualData.preserveProductBackground}
                     scopeOverride={appMode}
                   />

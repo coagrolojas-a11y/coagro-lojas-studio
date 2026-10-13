@@ -10,6 +10,7 @@ import { BenefitsList } from '../BenefitsList';
 
 export interface PetCentralTemplateProps {
   codigo?: string;
+  badge?: string;
   title: string;
   subtitle?: string;
   processedProduct: string;
@@ -26,6 +27,7 @@ export interface PetCentralTemplateProps {
 
 export const PetCentral: React.FC<PetCentralTemplateProps> = ({
   codigo,
+  badge,
   title,
   subtitle,
   processedProduct,
@@ -39,6 +41,7 @@ export const PetCentral: React.FC<PetCentralTemplateProps> = ({
   highlight,
   renderizacao,
 }) => {
+  const hasBadge = Boolean(badge && badge !== 'Sem Selo' && badge.trim() !== '');
 
   return (
     <div className="relative z-10 w-full h-full flex flex-col items-center bg-white font-['Inter'] select-none">
@@ -47,9 +50,11 @@ export const PetCentral: React.FC<PetCentralTemplateProps> = ({
       <header className="w-full flex flex-col items-center pt-6 pb-2 shrink-0">
         <CoagroPetLogo style={{ width: '100px', height: 'auto', marginBottom: '8px' }} />
         
-        <p className="mt-2 text-[#C4571F] font-bold tracking-[0.35em] uppercase text-[10px]">
-          O F E R T A &nbsp; P E T
-        </p>
+        {hasBadge && (
+          <p className="mt-2 text-[#C4571F] font-bold tracking-[0.35em] uppercase text-[10px]">
+            {badge}
+          </p>
+        )}
         
         {title && (
           <h1 className="mt-1 font-exo2 font-black text-[#4897D0] text-center leading-[1.05] tracking-tight max-w-[95%] text-3xl sm:text-4xl uppercase drop-shadow-md">
