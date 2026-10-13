@@ -31,8 +31,8 @@ export function getDefaultSocialManualData(appMode: 'AGRO' | 'PET'): SocialManua
       valorPor: '129,90',
       diferenciais: ['15kg rende mais', 'Sem corantes artificiais'],
       backgroundImageUrl: '',
-      backgroundColorHex: '',
-      theme: 'azul-coagro',
+      backgroundColorHex: 'branco',
+      theme: 'clean-branco',
       textBackground: undefined,
       badge: 'Sem Selo',
       cta: 'Aproveite a oferta!',
@@ -70,6 +70,7 @@ export function syncSocialManualDataToContent(
   return {
     ...baseContent,
     linha: appMode,
+    tema: (data.theme as CanvasTheme) || baseContent.tema,
     textos_hero: {
       titulo: data.titulo,
       subtitulo: data.subtitulo,

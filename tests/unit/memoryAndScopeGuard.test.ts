@@ -38,9 +38,9 @@ describe('memoryAndScopeGuard — Testes de Blindagem de Memória e Escopo', () 
       expect(EMPTY_AGRO_CONTENT.template_layout).toBe('hero-central');
     });
 
-    it('EMPTY_PET_CONTENT inicializa com tema azul-coagro e layout pet-central', () => {
-      expect(EMPTY_PET_CONTENT.tema).toBe('azul-coagro');
-      expect(EMPTY_PET_CONTENT.template_layout).toBe('pet-central');
+    it('EMPTY_PET_CONTENT inicializa com tema clean-branco e layout promo-simples', () => {
+      expect(EMPTY_PET_CONTENT.tema).toBe('clean-branco');
+      expect(EMPTY_PET_CONTENT.template_layout).toBe('promo-simples');
     });
 
     it('ambos os conteúdos iniciam com módulo de preço inativo e limpo', () => {

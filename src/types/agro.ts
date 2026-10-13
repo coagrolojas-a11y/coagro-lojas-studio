@@ -186,6 +186,7 @@ export const EMPTY_AGRO_CONTENT: AgroPostContent = {
 
 export const EMPTY_PET_CONTENT: AgroPostContent = {
   ...EMPTY_AGRO_CONTENT,
-  template_layout: 'pet-central',
-  tema: 'azul-coagro',
+  template_layout: 'promo-simples',
+  tema: 'clean-branco',
+  fundo_cor_hex: 'branco',
 };

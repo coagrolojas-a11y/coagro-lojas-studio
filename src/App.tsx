@@ -61,10 +61,10 @@ export default function App() {
 
   // Canvas styling states
   const [canvasFormat, setCanvasFormat] = useState<CanvasFormat>('story');
-  const [canvasTheme, setCanvasTheme] = useState<CanvasTheme>('azul-coagro');
-  const [templateLayout, setTemplateLayout] = useState<TemplateLayout>('hero-central');
+  const [canvasTheme, setCanvasTheme] = useState<CanvasTheme>(appMode === 'PET' ? 'clean-branco' : 'azul-coagro');
+  const [templateLayout, setTemplateLayout] = useState<TemplateLayout>(appMode === 'PET' ? 'promo-simples' : 'hero-central');
   const [templateWasManuallySelected, setTemplateWasManuallySelected] = useState(false);
-  const [logoVariant, setLogoVariant] = useState<LogoVariant>('h-branca');
+  const [logoVariant, setLogoVariant] = useState<LogoVariant>(appMode === 'PET' ? 'h-azul' : 'h-branca');
   const [imageBoxFormat, setImageBoxFormat] = useState<'rectangular' | 'square'>('rectangular');
 
   const isFirstMountRef = useRef(true);
@@ -76,8 +76,8 @@ export default function App() {
     }
 
     if (appMode === 'PET') {
-      setCanvasTheme('azul-coagro');
-      setTemplateLayout(resolveDefaultTemplate(canvasFormat, 'PET'));
+      setCanvasTheme('clean-branco');
+      setTemplateLayout('promo-simples');
       setLogoVariant('h-azul');
       // Cartaz físico: mantém Preto e Branco se selecionado; senão migra para o azul Pet
       setPosterTemplate(prev => (prev === 'promo-mono-a4' ? 'promo-mono-a4' : 'promo-pet-a4'));
@@ -87,7 +87,8 @@ export default function App() {
         }
         return {
           ...prev,
-          theme: 'azul-coagro'
+          theme: 'clean-branco',
+          backgroundColorHex: 'branco',
         };
       });
       // Se o conteúdo atual for o inicial vazio, ajusta para o vazio de PET
@@ -110,7 +111,8 @@ export default function App() {
         }
         return {
           ...prev,
-          theme: 'azul-coagro'
+          theme: 'azul-coagro',
+          backgroundColorHex: '',
         };
       });
       // Se o conteúdo atual for o inicial vazio, ajusta para o vazio de AGRO
@@ -846,21 +848,13 @@ export default function App() {
                     preserveProductBackground={socialManualData.preserveProductBackground}
                     scopeOverride={appMode}
                   />
-                  <div className="flex w-full max-w-[390px] gap-2 mt-2">
+                  <div className="w-full max-w-[390px] mt-2">
                     <button
                       onClick={() => handleDownloadCanvas('agro-canvas-main', 'final')}
-                      className={`flex-1 py-2.5 hover:opacity-90 text-white rounded-xl text-xs font-bold font-exo2 tracking-wide uppercase flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer ${appMode === 'PET' ? 'bg-[#001C71]' : 'bg-[#004d40]'}`}
+                      className={`w-full py-3 hover:opacity-90 text-white rounded-xl text-xs sm:text-sm font-bold font-exo2 tracking-wide uppercase flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer ${appMode === 'PET' ? 'bg-[#001C71]' : 'bg-[#004d40]'}`}
                     >
                       <Download className="w-4 h-4 text-[#ffab00]" />
                       Baixar Imagem
-                    </button>
-                    <button
-                      onClick={() => handlePrintCanvas('agro-canvas-main')}
-                      className="px-4 py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold font-exo2 tracking-wide uppercase flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer"
-                      title="Imprimir arte diretamente em folha de papel"
-                    >
-                      <Printer className="w-4 h-4 text-white" />
-                      Imprimir
                     </button>
                   </div>
                 </div>

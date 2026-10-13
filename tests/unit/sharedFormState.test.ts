@@ -24,10 +24,11 @@ describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', 
       expect(data.titulo).not.toContain('Ração');
     });
 
-    it('retorna dados padrão exclusivos para escopo PET com tema azul pet padrão', () => {
+    it('retorna dados padrão exclusivos para escopo PET com tema branco e layout promo-simples padrão', () => {
       const data = getDefaultSocialManualData('PET');
       expect(data.titulo).toBe('Ração Golden Special 15kg');
-      expect(data.theme).toBe('azul-coagro');
+      expect(data.theme).toBe('clean-branco');
+      expect(data.backgroundColorHex).toBe('branco');
       expect(data.badge).toBe('Sem Selo');
       expect(data.titulo).not.toContain('Pulverizador');
     });
@@ -75,7 +76,7 @@ describe('sharedFormState — Unificação de Estado e Isolamento Agro vs Pet', 
 
       expect(content.linha).toBe('PET');
       expect(content.tema).toBe('azul-coagro');
-      expect(content.template_layout).toBe('pet-central');
+      expect(content.template_layout).toBe('promo-simples');
       expect(content.modulo_preco?.ativo).toBe(false);
       expect(content.tipo_postagem).toBe('informativo');
     });

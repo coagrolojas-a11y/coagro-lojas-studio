@@ -532,13 +532,18 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                   Cor do Template
                 </label>
                 <select
-                  value={data.theme || 'azul-coagro'}
-                  onChange={(e) => onChange({ ...data, theme: e.target.value })}
+                  value={data.theme || (appMode === 'PET' ? 'clean-branco' : 'azul-coagro')}
+                  onChange={(e) => {
+                    const newTheme = e.target.value;
+                    const newBgHex = newTheme === 'clean-branco' ? 'branco' : (newTheme === 'azul-coagro' ? 'azul' : data.backgroundColorHex);
+                    onChange({ ...data, theme: newTheme, backgroundColorHex: newBgHex });
+                  }}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                 >
                   {appMode === 'PET' ? (
                     <>
-                      <option value="azul-coagro">Azul Pet (Institucional - Padrão)</option>
+                      <option value="clean-branco">Branco Pet (Padrão)</option>
+                      <option value="azul-coagro">Azul Pet (Institucional)</option>
                     </>
                   ) : (
                     <>
@@ -556,13 +561,23 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                     Fundo Promo Simples
                   </label>
                   <select
-                    value={data.backgroundColorHex || 'azul'}
+                    value={data.backgroundColorHex || (appMode === 'PET' ? 'branco' : 'azul')}
                     onChange={(e) => onChange({ ...data, backgroundColorHex: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                   >
-                    <option value="azul">{appMode === 'PET' ? 'Azul Pet (Padrão)' : 'Azul Publicitário (Padrão)'}</option>
-                    {appMode !== 'PET' && <option value="verde">Verde Institucional</option>}
-                    <option value="laranja">Laranja (Alerta)</option>
+                    {appMode === 'PET' ? (
+                      <>
+                        <option value="branco">Branco (Padrão)</option>
+                        <option value="azul">Azul Pet</option>
+                        <option value="laranja">Laranja (Alerta)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="azul">Azul Publicitário (Padrão)</option>
+                        <option value="verde">Verde Institucional</option>
+                        <option value="laranja">Laranja (Alerta)</option>
+                      </>
+                    )}
                   </select>
                 </div>
               )}
