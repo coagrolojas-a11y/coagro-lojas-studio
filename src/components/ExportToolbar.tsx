@@ -156,7 +156,7 @@ export const ExportToolbar: React.FC<ExportToolbarProps> = ({
             <Layout className="w-3.5 h-3.5 text-[#004d40]" /> Proporção:
           </span>
           <div className="flex items-center bg-gray-100 px-2.5 py-1 rounded-lg text-xs font-bold text-[#004d40] shadow-xs">
-            9:16 (Stories & Status)
+            {format === 'feed-4x3' ? '4:3 (Feed Instagram)' : format === 'story' ? '9:16 (Stories & Status)' : format === 'feed-retrato' ? '4:5 (Feed Retrato)' : format === 'a4-retrato' ? 'A4 Retrato' : '1:1 (Feed Quadrado)'}
           </div>
         </div>
 

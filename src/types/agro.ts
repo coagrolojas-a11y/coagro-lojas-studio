@@ -38,7 +38,7 @@ export interface CaixaSubtitulo {
   limite?: number;
 }
 
-export type CanvasFormat = 'feed-quadrado' | 'feed-retrato' | 'story' | 'a4-retrato';
+export type CanvasFormat = 'feed-quadrado' | 'feed-retrato' | 'feed-4x3' | 'story' | 'a4-retrato';
 
 /**
  * Templates de CARTAZ A4 (impressão física).
@@ -65,7 +65,7 @@ export type PosterTemplateLayout =
  * e a Fase 3 do roadmap. Os componentes seguem preservados em
  * `src/components/art-renderer/templates/`.
  */
-export type TemplateLayout = 'unified-central' | 'unified-split' | 'unified-central-mascot' | 'unified-split-mascot' | 'informative-central' | 'informative-split' | 'promo-simples' | 'split-vertical' | 'hero-central' | 'pet-central' | 'pet-split-vertical' | 'pet-split' | 'whatsapp-status' | PosterTemplateLayout;
+export type TemplateLayout = 'unified-central' | 'unified-split' | 'unified-central-mascot' | 'unified-split-mascot' | 'informative-central' | 'informative-split' | 'promo-simples' | 'promo-simples-saldao' | 'split-vertical' | 'hero-central' | 'pet-central' | 'pet-split-vertical' | 'pet-split' | 'whatsapp-status' | PosterTemplateLayout;
 
 export type CanvasTheme =
   | 'verde-coagro'   // #004d40 Dominante Institucional

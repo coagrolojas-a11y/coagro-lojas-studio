@@ -6,6 +6,7 @@ import { ArtHeader } from '../ArtHeader';
 import { SemanticProductImage } from '../SemanticProductImage';
 import { getDynamicTitleSize } from '../../../lib/typography';
 import { RenderizacaoVisual } from '../../../types/agro';
+import { CampaignBadgeContent } from '../CampaignBadgeContent';
 
 export interface PromoSimplesProps {
   scope: 'AGRO' | 'PET';
@@ -24,6 +25,7 @@ export interface PromoSimplesProps {
   codigo?: string;
   backgroundColorHex?: string;
   isLight?: boolean;
+  campaignVariant?: boolean;
 }
 
 /**
@@ -48,6 +50,7 @@ export const PromoSimples: React.FC<PromoSimplesProps> = ({
   codigo,
   backgroundColorHex,
   isLight,
+  campaignVariant = false,
 }) => {
   const isPet = scope === 'PET';
 
@@ -59,8 +62,9 @@ export const PromoSimples: React.FC<PromoSimplesProps> = ({
     'laranja': 'bg-[#E96C2C]'
   };
 
-  const bgClass = backgroundColorHex && bgMap[backgroundColorHex] ? bgMap[backgroundColorHex] : 'bg-transparent';
-  const isDark = backgroundColorHex && ['verde', 'azul', 'laranja'].includes(backgroundColorHex) ? true : !isLight;
+  const effectiveBackgroundColor = campaignVariant ? (backgroundColorHex || 'azul') : backgroundColorHex;
+  const bgClass = effectiveBackgroundColor && bgMap[effectiveBackgroundColor] ? bgMap[effectiveBackgroundColor] : 'bg-transparent';
+  const isDark = effectiveBackgroundColor && ['verde', 'azul', 'laranja'].includes(effectiveBackgroundColor) ? true : !isLight;
 
   const titleColor = isDark ? 'text-white' : 'text-gray-900';
   const highlightColor = isDark ? 'text-white' : (isPet ? 'text-[#E96C2C]' : 'text-[#004d40]');
@@ -80,7 +84,16 @@ export const PromoSimples: React.FC<PromoSimplesProps> = ({
       
       {/* Header (Topo) */}
       <header className="w-full flex flex-col items-center shrink-0 z-20 mb-2">
-        <ArtHeader logoVariant={finalLogoVariant} isStory={isStory} align="center" scope={scope} />
+        {campaignVariant ? (
+          <div className={`flex ${isStory ? 'h-[clamp(96px,27cqw,172px)]' : 'h-[clamp(72px,18cqw,112px)]'} w-[92%] max-w-[480px] items-center justify-center px-4 py-2 drop-shadow-[0_8px_14px_rgba(0,0,0,0.35)]`}>
+            <CampaignBadgeContent
+              badge="SALDÃO COAGRO"
+              imageClassName="h-full w-full object-contain"
+            />
+          </div>
+        ) : (
+          <ArtHeader logoVariant={finalLogoVariant} isStory={isStory} align="center" scope={scope} />
+        )}
       </header>
 
       {/* Imagem do Produto (Ocupa a parte central) */}

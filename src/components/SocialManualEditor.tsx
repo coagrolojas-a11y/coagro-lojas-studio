@@ -511,12 +511,25 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                   { id: 'unified-central', label: 'Central', icon: Store },
                   { id: 'unified-split', label: 'Split (Lado)', icon: LayoutTemplate },
                   { id: 'promo-simples', label: 'Promo Simples', icon: Tag },
+                  { id: 'promo-simples-saldao', label: 'Promo Saldão', icon: Sparkles },
                   { id: 'informative-central', label: 'Info Central', icon: List },
                   { id: 'informative-split', label: 'Info Split', icon: LayoutTemplate },
                 ].map(tpl => (
                   <button
                     key={tpl.id}
-                    onClick={(e) => { e.preventDefault(); onTemplateChange(tpl.id as TemplateLayout); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (tpl.id === 'promo-simples-saldao') {
+                        const currentColor = data.backgroundColorHex;
+                        onChange({
+                          ...data,
+                          backgroundColorHex: currentColor === 'azul' || currentColor === 'verde' ? currentColor : 'azul',
+                        });
+                      } else if (templateLayout === 'promo-simples-saldao' && format === 'feed-4x3') {
+                        onFormatChange('story');
+                      }
+                      onTemplateChange(tpl.id as TemplateLayout);
+                    }}
                     className={`py-3 px-1 text-xs font-bold rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
                       templateLayout === tpl.id 
                         ? 'text-white shadow-md' 
@@ -531,48 +544,82 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
               </div>
             </div>
 
+            {templateLayout === 'promo-simples-saldao' && (
+              <div className="flex flex-col gap-2 border-t border-gray-100 pt-4">
+                <label className="block text-xs font-bold uppercase tracking-wide text-gray-700">
+                  Formato da Promoção
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'story', label: 'Story 9:16' },
+                    { id: 'feed-4x3', label: 'Feed 4:3' },
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => onFormatChange(option.id as CanvasFormat)}
+                      className={`rounded-xl border px-3 py-2 text-sm font-bold transition ${
+                        format === option.id
+                          ? 'border-[#004d40] bg-[#004d40]/10 text-[#004d40] ring-2 ring-[#004d40]/20'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Cores e Selo da Campanha */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
               {/* Cor do Template (Geral) */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-                  Cor do Template
-                </label>
-                <select
-                  value={data.theme || (appMode === 'PET' ? 'clean-branco' : 'azul-coagro')}
-                  onChange={(e) => {
-                    const newTheme = e.target.value;
-                    const newBgHex = newTheme === 'clean-branco' ? 'branco' : (newTheme === 'azul-coagro' ? 'azul' : data.backgroundColorHex);
-                    onChange({ ...data, theme: newTheme, backgroundColorHex: newBgHex });
-                  }}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
-                >
-                  {appMode === 'PET' ? (
-                    <>
-                      <option value="clean-branco">Branco Pet (Padrão)</option>
-                      <option value="azul-coagro">Azul Pet (Institucional)</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="azul-coagro">Azul Coagro (Titular - Padrão)</option>
-                      <option value="campo-agro">Verde Coagro (Secundária Safra)</option>
-                    </>
-                  )}
-                </select>
-              </div>
-
-              {/* Cor de Fundo (Apenas para Promo Simples) */}
-              {templateLayout === 'promo-simples' && (
+              {templateLayout !== 'promo-simples-saldao' && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-                    Fundo Promo Simples
+                    Cor do Template
+                  </label>
+                  <select
+                    value={data.theme || (appMode === 'PET' ? 'clean-branco' : 'azul-coagro')}
+                    onChange={(e) => {
+                      const newTheme = e.target.value;
+                      const newBgHex = newTheme === 'clean-branco' ? 'branco' : (newTheme === 'azul-coagro' ? 'azul' : data.backgroundColorHex);
+                      onChange({ ...data, theme: newTheme, backgroundColorHex: newBgHex });
+                    }}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
+                  >
+                    {appMode === 'PET' ? (
+                      <>
+                        <option value="clean-branco">Branco Pet (Padrão)</option>
+                        <option value="azul-coagro">Azul Pet (Institucional)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="azul-coagro">Azul Coagro (Titular - Padrão)</option>
+                        <option value="campo-agro">Verde Coagro (Secundária Safra)</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              )}
+
+              {/* Cor de Fundo (Apenas para Promo Simples) */}
+              {['promo-simples', 'promo-simples-saldao'].includes(templateLayout) && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+                    {templateLayout === 'promo-simples-saldao' ? 'Cor da Promoção Saldão' : 'Fundo Promo Simples'}
                   </label>
                   <select
                     value={data.backgroundColorHex || (appMode === 'PET' ? 'branco' : 'azul')}
                     onChange={(e) => onChange({ ...data, backgroundColorHex: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                   >
-                    {appMode === 'PET' ? (
+                    {templateLayout === 'promo-simples-saldao' ? (
+                      <>
+                        <option value="azul">Azul (Padrão)</option>
+                        <option value="verde">Verde</option>
+                      </>
+                    ) : appMode === 'PET' ? (
                       <>
                         <option value="branco">Branco (Padrão)</option>
                         <option value="azul">Azul Pet</option>
@@ -590,30 +637,32 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
               )}
 
               {/* Selo Promocional (Badge) */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-                  Selo da Campanha
-                </label>
-                <select
-                  value={data.badge || 'Sem Selo'}
-                  onChange={(e) => onChange({ ...data, badge: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
-                >
-                  <option value="Sem Selo">Sem Selo (Padrão)</option>
-                  <option value="OFERTA">Oferta</option>
-                  <option value="LANÇAMENTO">Lançamento</option>
-                  <option value="SABADÃO">Sabadão</option>
-                  <option value="FECHA MÊS">Fecha Mês</option>
-                  <option value="SUPER PREÇO">Super Preço</option>
-                  <option value="LIQUIDAÇÃO">Liquidação</option>
-                  <option value="SALDÃO COAGRO">Saldão Coagro</option>
-                  {appMode === 'PET' ? (
-                    <option value="OFERTA PET">Oferta Pet</option>
-                  ) : (
-                    <option value="OFERTA CAMPO">Oferta Campo</option>
-                  )}
-                </select>
-              </div>
+              {templateLayout !== 'promo-simples-saldao' && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+                    Selo da Campanha
+                  </label>
+                  <select
+                    value={data.badge || 'Sem Selo'}
+                    onChange={(e) => onChange({ ...data, badge: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
+                  >
+                    <option value="Sem Selo">Sem Selo (Padrão)</option>
+                    <option value="OFERTA">Oferta</option>
+                    <option value="LANÇAMENTO">Lançamento</option>
+                    <option value="SABADÃO">Sabadão</option>
+                    <option value="FECHA MÊS">Fecha Mês</option>
+                    <option value="SUPER PREÇO">Super Preço</option>
+                    <option value="LIQUIDAÇÃO">Liquidação</option>
+                    <option value="SALDÃO COAGRO">Saldão Coagro</option>
+                    {appMode === 'PET' ? (
+                      <option value="OFERTA PET">Oferta Pet</option>
+                    ) : (
+                      <option value="OFERTA CAMPO">Oferta Campo</option>
+                    )}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         </details>

@@ -13,12 +13,14 @@ export const PosterCampaignTitle: React.FC<PosterCampaignTitleProps> = ({
 }) => {
   if (text === 'SALDÃO COAGRO') {
     return (
-      <img
-        src="/sald%C3%A3o%20coagro.png"
-        alt="Saldão Coagro"
-        className="max-h-[16cqw] max-w-[76cqw] object-contain"
-        style={monochrome ? { filter: 'grayscale(1)' } : undefined}
-      />
+      <span className="flex h-[18cqw] max-h-full max-w-[86cqw] items-center justify-center rounded-[1.5cqw] border border-black/10 bg-white px-[2cqw] py-[0.8cqw] shadow-md">
+        <img
+          src="/sald%C3%A3o%20coagro.png"
+          alt="Saldão Coagro"
+          className="max-h-[15cqw] max-w-[80cqw] object-contain"
+          style={monochrome ? { filter: 'grayscale(1)' } : undefined}
+        />
+      </span>
     );
   }
 

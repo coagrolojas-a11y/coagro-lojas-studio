@@ -934,7 +934,7 @@ export default function App() {
 
               {/* Render Single Art (Feed ou Story) */}
               <div className="flex flex-row flex-wrap justify-center gap-8 w-full mt-4">
-                <div className={`flex flex-col items-center gap-3 shrink-0 w-full ${canvasFormat === 'story' ? 'max-w-[390px]' : canvasFormat === 'feed-retrato' ? 'max-w-[440px]' : 'max-w-[480px]'}`}>
+                <div className={`flex flex-col items-center gap-3 shrink-0 w-full ${canvasFormat === 'story' ? 'max-w-[390px]' : canvasFormat === 'feed-retrato' ? 'max-w-[440px]' : canvasFormat === 'feed-4x3' ? 'max-w-[560px]' : 'max-w-[480px]'}`}>
                   <div className="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-wider font-exo2 flex items-center gap-2">
                     <Maximize2 className="w-3.5 h-3.5 text-[#ffab00]" />
                     Modelo Visual Atual
