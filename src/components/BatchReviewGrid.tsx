@@ -843,12 +843,12 @@ export const BatchReviewGrid: React.FC<BatchReviewGridProps> = ({ onStartExport,
                           onChange={(e) => setActiveBadgeText(e.target.value)}
                           className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
                         >
+                          <option value="SALDÃO COAGRO">SALDÃO COAGRO (IMAGEM)</option>
                           <option value="OFERTA">OFERTA</option>
                           <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
                           <option value="PROMOÇÃO">PROMOÇÃO</option>
                           <option value="SUPER PREÇO">SUPER PREÇO</option>
                           <option value="ESPECIAL">ESPECIAL</option>
-                          <option value="SALDÃO COAGRO">SALDÃO COAGRO</option>
                         </select>
                       </div>
 
@@ -950,12 +950,12 @@ export const BatchReviewGrid: React.FC<BatchReviewGridProps> = ({ onStartExport,
                   onChange={(e) => setActiveBadgeText(e.target.value)}
                   className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700"
                 >
+                  <option value="SALDÃO COAGRO">SALDÃO COAGRO (IMAGEM)</option>
                   <option value="OFERTA">OFERTA</option>
                   <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
                   <option value="PROMOÇÃO">PROMOÇÃO</option>
                   <option value="SUPER PREÇO">SUPER PREÇO</option>
                   <option value="ESPECIAL">ESPECIAL</option>
-                  <option value="SALDÃO COAGRO">SALDÃO COAGRO</option>
                 </select>
               </div>
             </div>

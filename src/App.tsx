@@ -1010,6 +1010,7 @@ export default function App() {
                       onChange={(e) => setPosterHeaderText(e.target.value)}
                       className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-800 bg-gray-50 focus:ring-[#004d40] focus:border-[#004d40] transition cursor-pointer"
                     >
+                      <option value="SALDÃO COAGRO">SALDÃO COAGRO (IMAGEM)</option>
                       <option value="OFERTA">OFERTA</option>
                       <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
                       <option value="PROMOÇÃO">PROMOÇÃO</option>
@@ -1017,7 +1018,6 @@ export default function App() {
                       <option value="ESPECIAL">ESPECIAL</option>
                       <option value="NOVIDADE">NOVIDADE</option>
                       <option value="PREÇO BAIXO">PREÇO BAIXO</option>
-                      <option value="SALDÃO COAGRO">SALDÃO COAGRO</option>
                     </select>
                   </div>
 
