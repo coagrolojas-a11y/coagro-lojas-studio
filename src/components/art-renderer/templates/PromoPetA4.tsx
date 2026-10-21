@@ -8,6 +8,7 @@ export interface PromoPetA4Props {
   codigo?: string;
   headerText?: string;
   discountBadge?: string;
+  validityText?: string;
 }
 
 /**
@@ -36,6 +37,7 @@ export const PromoPetA4: React.FC<PromoPetA4Props> = ({
   codigo,
   headerText = 'OFERTA',
   discountBadge,
+  validityText,
 }) => {
   const priceParts = currentPrice.replace('R$', '').trim().split(',');
   const mainPrice = priceParts[0] || '0';
@@ -143,9 +145,11 @@ export const PromoPetA4: React.FC<PromoPetA4Props> = ({
         {/* Logo oficial Coagro Pet */}
         <CoagroPetLogo className="w-[16cqw] h-auto shrink-0 bg-white/95 rounded-lg px-2 py-0.5" />
         <div className="flex flex-col items-center min-w-0">
-          <p className="font-exo2 font-black uppercase tracking-wider text-center text-white" style={{ fontSize: '3.6cqw' }}>
-            APROVEITE! ÚLTIMAS UNIDADES!
-          </p>
+          {validityText && (
+            <p className="font-exo2 font-bold text-center text-white leading-tight" style={{ fontSize: '3.1cqw' }}>
+              {validityText}
+            </p>
+          )}
           {codigo && (
             <div className="mt-[0.3cqw] font-bold opacity-90 text-white" style={{ fontSize: '2.4cqw' }}>
               CÓD: {codigo}

@@ -8,6 +8,7 @@ import { EMPTY_AGRO_CONTENT } from '../types/agro';
 import type { PosterTemplateLayout } from '../types/agro';
 import type { ScopeId } from '../lib/brand.config';
 import { calculateDiscount } from '../lib/priceCalculator';
+import { OfferPeriod, formatOfferPeriod } from '../lib/offerPeriod';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
 
 export type BatchDpiPreset = 100 | 120 | 150 | 300;
@@ -29,6 +30,7 @@ interface BatchRendererModalProps {
   headerText?: string;
   gridFormat?: PosterSheetGrid;
   showDiscountBadge?: boolean;
+  offerPeriod?: OfferPeriod;
   /** Escopo/marca do lote (vem do tenant ativo). Ver src/lib/brand.config.ts. */
   scope?: ScopeId;
   initialDpi?: BatchDpiPreset;
@@ -42,6 +44,7 @@ export const BatchRendererModal: React.FC<BatchRendererModalProps> = ({
   headerText = 'OFERTA', 
   gridFormat = '1_PER_PAGE',
   showDiscountBadge = true,
+  offerPeriod,
   scope, 
   initialDpi,
   onClose 
@@ -303,6 +306,7 @@ export const BatchRendererModal: React.FC<BatchRendererModalProps> = ({
                     containerId={`batch-subart-${item.id}-${idx}`}
                     badgeText={headerText}
                     scopeOverride={scope}
+                    validityText={formatOfferPeriod(offerPeriod)}
                     discountBadge={(() => {
                       if (!showDiscountBadge) return undefined;
                       const discount = calculateDiscount(item.valorDe, item.valorPor);

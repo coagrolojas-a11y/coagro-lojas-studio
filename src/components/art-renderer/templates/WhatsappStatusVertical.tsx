@@ -4,6 +4,7 @@ import { CommunicationMode } from '../../../lib/communicationMode';
 import { SemanticProductImage } from '../SemanticProductImage';
 import { renderTitleWithHighlight } from '../../../lib/renderHelper';
 import { Check } from 'lucide-react';
+import { CampaignBadgeContent } from '../CampaignBadgeContent';
 
 export interface WhatsappStatusVerticalProps {
   codigo?: string;
@@ -134,15 +135,21 @@ export const WhatsappStatusVertical: React.FC<WhatsappStatusVerticalProps> = ({
 
         {/* Badge superior de canal direto (renderizado apenas quando há selo ativo) */}
         {hasBadge && (
-          <div className={`flex items-center gap-[1.2cqw] backdrop-blur-md px-[3.5cqw] py-[1cqw] rounded-full shadow-sm ${
-            effectiveLight 
-              ? 'bg-amber-100/90 border border-amber-300 text-amber-900' 
-              : 'bg-black/35 border border-white/20 text-[#ffab00]'
-          }`}>
-            <span className="font-exo2 font-black uppercase text-[2.8cqw] tracking-wider">
-              {badge}
-            </span>
-          </div>
+          badge === 'SALDÃO COAGRO' ? (
+            <div className="w-[32cqw] max-w-[140px]">
+              <CampaignBadgeContent badge={badge} />
+            </div>
+          ) : (
+            <div className={`flex items-center gap-[1.2cqw] backdrop-blur-md px-[3.5cqw] py-[1cqw] rounded-full shadow-sm ${
+              effectiveLight
+                ? 'bg-amber-100/90 border border-amber-300 text-amber-900'
+                : 'bg-black/35 border border-white/20 text-[#ffab00]'
+            }`}>
+              <span className="font-exo2 font-black uppercase text-[2.8cqw] tracking-wider">
+                {badge}
+              </span>
+            </div>
+          )
         )}
       </header>
 

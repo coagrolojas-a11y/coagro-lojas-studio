@@ -2,6 +2,8 @@ import React, { useRef } from 'react';
 import { Type, Tag, Sparkles, Share2 } from 'lucide-react';
 import { sanitizeErpTitle } from '../lib/erpSanitizer';
 import { findProductBySku } from '../lib/productStorage';
+import { OfferValidityFields } from './OfferValidityFields';
+import { OfferPeriod } from '../lib/offerPeriod';
 
 export interface PosterManualData {
   codigo: string;
@@ -16,13 +18,17 @@ interface PosterManualEditorProps {
   onChange: (data: PosterManualData) => void;
   onSendToSocial?: (data: PosterManualData) => void;
   appMode?: 'AGRO' | 'PET';
+  offerPeriod: OfferPeriod;
+  onOfferPeriodChange: (period: OfferPeriod) => void;
 }
 
 export const PosterManualEditor: React.FC<PosterManualEditorProps> = ({ 
   data, 
   onChange,
   onSendToSocial,
-  appMode = 'AGRO'
+  appMode = 'AGRO',
+  offerPeriod,
+  onOfferPeriodChange
 }) => {
   const lastSkuLookupRef = useRef('');
 
@@ -42,6 +48,7 @@ export const PosterManualEditor: React.FC<PosterManualEditorProps> = ({
       </div>
 
       <div className="space-y-4">
+        <OfferValidityFields value={offerPeriod} onChange={onOfferPeriodChange} />
         <div>
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
             Código do Produto

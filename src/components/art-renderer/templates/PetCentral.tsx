@@ -7,6 +7,7 @@ import { ArtCta } from '../ArtCta';
 import { RenderizacaoVisual } from '../../../types/agro';
 import { SemanticProductImage } from '../SemanticProductImage';
 import { BenefitsList } from '../BenefitsList';
+import { CampaignBadgeContent } from '../CampaignBadgeContent';
 
 export interface PetCentralTemplateProps {
   codigo?: string;
@@ -51,9 +52,15 @@ export const PetCentral: React.FC<PetCentralTemplateProps> = ({
         <CoagroPetLogo style={{ width: '100px', height: 'auto', marginBottom: '8px' }} />
         
         {hasBadge && (
-          <p className="mt-2 text-[#C4571F] font-bold tracking-[0.35em] uppercase text-[10px]">
-            {badge}
-          </p>
+          badge === 'SALDÃO COAGRO' ? (
+            <div className="mt-2 w-36 max-w-full">
+              <CampaignBadgeContent badge={badge} />
+            </div>
+          ) : (
+            <p className="mt-2 text-[#C4571F] font-bold tracking-[0.35em] uppercase text-[10px]">
+              {badge}
+            </p>
+          )
         )}
         
         {title && (

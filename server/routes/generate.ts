@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { apiLimiter } from '../middleware/rateLimit.js';
 import { ai } from '../config/gemini.js';
-// System prompts do motor de IA. Ficaram Ã“RFÃƒOS na modularizaÃ§Ã£o P2.3 e foram
-// restaurados do histÃ³rico do git â€” sem eles /api/generate-content lanÃ§ava
+// System prompts do motor de IA. Ficaram Ã“RFÃƒOS na modularização P2.3 e foram
+// restaurados do histórico do git â€” sem eles /api/generate-content lançava
 // ReferenceError em runtime. 
 import {
   AGRO_SYSTEM_INSTRUCTION,
@@ -12,10 +12,10 @@ import {
 } from '../config/instructions.js';
 import { analyzeAgroDescriptionServer } from '../services/analyzer.js';
 import { generateHeuristicAgroContent } from '../services/heuristic.js';
-// FONTE ÃšNICA DE VERDADE MONETÃRIA:
+// FONTE ÃšNICA DE VERDADE MONETÁRIA:
 // o servidor consome o MESMO parser/formatador que o cliente (src/lib).
-// Antes existia uma cÃ³pia em server/utils/priceParser.ts com regex diferente,
-// o que permitia que preview e geraÃ§Ã£o por IA calculassem preÃ§os distintos
+// Antes existia uma cópia em server/utils/priceParser.ts com regex diferente,
+// o que permitia que preview e geração por IA calculassem preços distintos
 // para o mesmo texto. 
 import { extractPriceFromText, parsePriceToFloat } from '../../src/lib/priceParser.js';
 import { formatBrlWithSymbol, formatBrlValue } from '../../src/lib/priceFormatter.js';
@@ -40,15 +40,22 @@ generateRouter.post('/api/generate-content', apiLimiter, async (req, res) => {
       appMode,
     } = req.body;
 
-    // REGRA ESTRITA: SÃ³ Ã© possÃ­vel gerar a imagem depois que o usuÃ¡rio colocar a foto E a descriÃ§Ã£o!
-    if (!imageBase64 || !prompt || !prompt.trim()) {
+    // REGRA ESTRITA: Só é possível gerar a imagem depois que o usuário colocar a foto E a descrição!
+    // Validação de TIPO (não só de presença): um prompt numérico/objeto derrubava
+    // .trim() e caía no catch -> 502 em vez de 400. Aqui garantimos strings.
+    if (
+      typeof imageBase64 !== 'string' ||
+      !imageBase64 ||
+      typeof prompt !== 'string' ||
+      !prompt.trim()
+    ) {
       return res.status(400).json({
         success: false,
-        error: 'Para gerar a arte, Ã© obrigatÃ³rio fornecer tanto a foto do produto quanto a descriÃ§Ã£o.',
+        error: 'Para gerar a arte, é obrigatório fornecer tanto a foto do produto quanto a descrição.',
       });
     }
 
-    // Extrai inteligentemente preÃ§o e condiÃ§Ãµes de pagamento do prompt (com isolamento de unidades e cÃ³digos)
+    // Extrai inteligentemente preço e condições de pagamento do prompt (com isolamento de unidades e códigos)
     const detectedPrice = extractPriceFromText(prompt);
     let effectivePriceInfo = priceInfo;
     if ((!effectivePriceInfo || !effectivePriceInfo.ativo || !effectivePriceInfo.valor_por) && detectedPrice.hasPrice) {
@@ -60,7 +67,7 @@ generateRouter.post('/api/generate-content', apiLimiter, async (req, res) => {
       };
     }
 
-    // AnÃ¡lise prÃ©via inteligente do produto (marca, modelo, subtÃ­tulo e layout recomendado)
+    // Análise prévia inteligente do produto (marca, modelo, subtítulo e layout recomendado)
     const hasTwoPrices = Boolean(effectivePriceInfo?.valor_de && effectivePriceInfo?.valor_por);
     const hasSinglePrice = Boolean(!effectivePriceInfo?.valor_de && effectivePriceInfo?.valor_por);
     const preAnalysis = analyzeAgroDescriptionServer(prompt, hasTwoPrices, hasSinglePrice);
@@ -68,75 +75,79 @@ generateRouter.post('/api/generate-content', apiLimiter, async (req, res) => {
     const parts: any[] = [];
     const requestedFormatName = format === 'story' ? 'Story' : 'Feed';
 
+    // Whitelist de MIME: o valor vem do cliente e ia direto para a API do Gemini.
+    const ALLOWED_IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+    const safeMimeType = ALLOWED_IMAGE_MIME.includes(mimeType) ? mimeType : 'image/jpeg';
+
     const cleanBase64 = imageBase64.replace(/^data:[^;]+;base64,/, '');
     parts.push({
       inlineData: {
-        mimeType: mimeType || 'image/jpeg',
+        mimeType: safeMimeType,
         data: cleanBase64,
       },
     });
 
     let instruction = `DIRETRIZ MESTRE DE GERAÃ‡ÃƒO - COAGRO AGRO STUDIO (Formato: "${requestedFormatName}")
 
-O usuÃ¡rio forneceu OBRIGATORIAMENTE duas fontes de dados conjuntas:
-1. A FOTO REAL do produto/equipamento/insumo agrÃ­cola (imagem enviada).
-2. A DESCRIÃ‡ÃƒO textual digitada pelo usuÃ¡rio: "${prompt}".
+O usuário forneceu OBRIGATORIAMENTE duas fontes de dados conjuntas:
+1. A FOTO REAL do produto/equipamento/insumo agrícola (imagem enviada).
+2. A DESCRIÃ‡ÃƒO textual digitada pelo usuário: "${prompt}".
 
-ETAPA 1: ANÃLISE OBRIGATÃ“RIA DA DESCRIÃ‡ÃƒO E DA IMAGEM
-VocÃª deve analisar minuciosamente o texto e a foto juntos para extrair com precisÃ£o.
-ATENÃ‡ÃƒO: O usuÃ¡rio pode digitar nomes incorretos ou com erros ortogrÃ¡ficos. CORRIJA silenciosamente os erros de digitaÃ§Ã£o com base no seu conhecimento e na imagem. Se houver textos absurdos, ignore-os e foque no produto real.
-- NOME DO PRODUTO: Identifique e corrija o nome comercial completo (ex: Triturador TR30, Pulverizador XP 16, Bravecto). NÃ£o inclua a marca no nome do produto.
-- MARCA / FABRICANTE: Extraia a marca exata do fabricante (ex: Tramontina, Jacto, Bayer, MSD SaÃºde Animal, Premier Pet). ATENÃ‡ÃƒO: Se nÃ£o informada, retorne null. NÃ£o invente marcas genÃ©ricas como 'Pet' ou 'Agro'. NÃ£o confunda linha (Golden, Bravecto) com fabricante (Premier Pet, MSD).
-- FORNECEDOR / LINHA: Identifique o fornecedor ou divisÃ£o se citado no texto ou na embalagem.
-- ANÃLISE SEMÃ‚NTICA DE PREÃ‡OS (TRATAMENTO DE AMBIGUIDADES):
-  * Regra de vÃ­rgula e centavos (OBRIGATÃ“RIO):
-    - Valores SEM VÃRGULA digitados pelo usuÃ¡rio (ex: 1992 ou 1575 ou 3890) devem ser tratados estritamente como INTEIROS com centavos ,00 no final ("1.992,00" e "1.575,00").
-    - Valores COM VÃRGULA (ex: 3190,50 ou 45,90) mantÃªm os centavos exatos informados ("3.190,50" e "45,90").
-  * DescriÃ§Ãµes com mÃºltiplos valores:
-    - Descarte totalmente grandezas tÃ©cnicas (ex: 2HP, 220V, 50HZ, 30L, 50kg, 16 pol, 3500rpm, etc.), modelos (TR30, XP16), anos (2024) e quantidades (2 unidades).
-    - NÃºmeros de parcelas (ex: 10x de 180) devem ser capturados em "condicao" ("EM 10X DE R$ 180,00"), NUNCA como preÃ§o principal.
-  * ResoluÃ§Ã£o semÃ¢ntica de 'DE' vs 'POR' (mesmo se invertidos no texto):
-    - A diferenciaÃ§Ã£o entre "preÃ§o de" e "preÃ§o por" Ã© feita por contexto semÃ¢ntico:
-      - Marcadores de PreÃ§o Original ("DE"): palavras como "de", "era", "custava", "antes", "de tabela", "original".
-      - Marcadores de PreÃ§o Promocional ("POR"): palavras como "por", "sai por", "agora", "apenas", "promoÃ§Ã£o", "Ã  vista", "no pix".
-    - ValidaÃ§Ã£o de CoerÃªncia Comercial: em qualquer promoÃ§Ã£o ("de/por"), o preÃ§o original ("valor_de") Ã© inerentemente superior ao preÃ§o promocional ("valor_por"). Se o usuÃ¡rio tiver escrito "de 1575 por 1992" ou "por 1575 de 1992", o valor mais alto (1.992,00) Ã© SEMPRE o "valor_de" e o valor mais baixo (1.575,00) Ã© SEMPRE o "valor_por".
+ETAPA 1: ANÁLISE OBRIGATÃ“RIA DA DESCRIÃ‡ÃƒO E DA IMAGEM
+Você deve analisar minuciosamente o texto e a foto juntos para extrair com precisão.
+ATENÃ‡ÃƒO: O usuário pode digitar nomes incorretos ou com erros ortográficos. CORRIJA silenciosamente os erros de digitação com base no seu conhecimento e na imagem. Se houver textos absurdos, ignore-os e foque no produto real.
+- NOME DO PRODUTO: Identifique e corrija o nome comercial completo (ex: Triturador TR30, Pulverizador XP 16, Bravecto). Não inclua a marca no nome do produto.
+- MARCA / FABRICANTE: Extraia a marca exata do fabricante (ex: Tramontina, Jacto, Bayer, MSD Saúde Animal, Premier Pet). ATENÃ‡ÃƒO: Se não informada, retorne null. Não invente marcas genéricas como 'Pet' ou 'Agro'. Não confunda linha (Golden, Bravecto) com fabricante (Premier Pet, MSD).
+- FORNECEDOR / LINHA: Identifique o fornecedor ou divisão se citado no texto ou na embalagem.
+- ANÁLISE SEMÃ‚NTICA DE PREÃ‡OS (TRATAMENTO DE AMBIGUIDADES):
+  * Regra de vírgula e centavos (OBRIGATÃ“RIO):
+    - Valores SEM VÍRGULA digitados pelo usuário (ex: 1992 ou 1575 ou 3890) devem ser tratados estritamente como INTEIROS com centavos ,00 no final ("1.992,00" e "1.575,00").
+    - Valores COM VÍRGULA (ex: 3190,50 ou 45,90) mantêm os centavos exatos informados ("3.190,50" e "45,90").
+  * Descrições com múltiplos valores:
+    - Descarte totalmente grandezas técnicas (ex: 2HP, 220V, 50HZ, 30L, 50kg, 16 pol, 3500rpm, etc.), modelos (TR30, XP16), anos (2024) e quantidades (2 unidades).
+    - Números de parcelas (ex: 10x de 180) devem ser capturados em "condicao" ("EM 10X DE R$ 180,00"), NUNCA como preço principal.
+  * Resolução semântica de 'DE' vs 'POR' (mesmo se invertidos no texto):
+    - A diferenciação entre "preço de" e "preço por" é feita por contexto semântico:
+      - Marcadores de Preço Original ("DE"): palavras como "de", "era", "custava", "antes", "de tabela", "original".
+      - Marcadores de Preço Promocional ("POR"): palavras como "por", "sai por", "agora", "apenas", "promoção", "à vista", "no pix".
+    - Validação de Coerência Comercial: em qualquer promoção ("de/por"), o preço original ("valor_de") é inerentemente superior ao preço promocional ("valor_por"). Se o usuário tiver escrito "de 1575 por 1992" ou "por 1575 de 1992", o valor mais alto (1.992,00) é SEMPRE o "valor_de" e o valor mais baixo (1.575,00) é SEMPRE o "valor_por".
     - No JSON, preencha "modulo_preco" com:
       "ativo": true,
       "valor_de": "${effectivePriceInfo?.valor_de || ''}",
       "valor_por": "${effectivePriceInfo?.valor_por || ''}",
       "condicao": "${effectivePriceInfo?.condicoes_pagamento || ''}"
     - "tipo_postagem": "promocao"
-  * Se existir apenas 1 preÃ§o:
+  * Se existir apenas 1 preço:
     - "modulo_preco": { "ativo": true, "valor_de": "", "valor_por": "${effectivePriceInfo?.valor_por || ''}" }
     - "tipo_postagem": "preco-unico"
-  * Se NÃƒO houver preÃ§o no texto ou imagem:
+  * Se NÃƒO houver preço no texto ou imagem:
     - "modulo_preco": { "ativo": false, "valor_de": "", "valor_por": "" }
     - "tipo_postagem": "informativo"
 
 ETAPA 2: GERAÃ‡ÃƒO DOS CAMPOS DA ARTE PARA O FORMATO "${requestedFormatName}"
-SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ§Ã£o da arte estritamente para este produto identificado:
+SÃ“ APÃ“S A ANÁLISE COMPLETA ACIMA, gere todos os campos de renderização da arte estritamente para este produto identificado:
 1. "nome_produto": Nome comercial identificado (ex: "${preAnalysis.baseProduct}").
 2. "marca_fabricante": Marca identificada (ex: "${preAnalysis.brand || 'Coagro'}").
-3. "titulo" / "titulo_impacto": TÃ­tulo comercial de impacto em CAIXA ALTA (mÃ¡x. 4 palavras). 
-   - SEJA INTELIGENTE: Adapte ao produto! Se a loja for Agro mas a imagem for de produto Pet (ex: Nexgard, RaÃ§Ã£o), crie um tÃ­tulo voltado para Pet (ex: "OFERTA NEXGARD", "CUIDADO ANIMAL", "OFERTA PET").
-   - Se for produto agrÃ­cola, use termos de campo ("PRODUTIVIDADE", "NO CAMPO").
-   - VocÃª DEVE incluir o nome da marca ou do produto aqui se for um produto forte (ex: "OFERTA BRAVECTO").
+3. "titulo" / "titulo_impacto": Título comercial de impacto em CAIXA ALTA (máx. 4 palavras). 
+   - SEJA INTELIGENTE: Adapte ao produto! Se a loja for Agro mas a imagem for de produto Pet (ex: Nexgard, Ração), crie um título voltado para Pet (ex: "OFERTA NEXGARD", "CUIDADO ANIMAL", "OFERTA PET").
+   - Se for produto agrícola, use termos de campo ("PRODUTIVIDADE", "NO CAMPO").
+   - Você DEVE incluir o nome da marca ou do produto aqui se for um produto forte (ex: "OFERTA BRAVECTO").
 4. "subtitulo": OBRIGATORIAMENTE UMA LINHA DESCRITIVA DA APLICAÃ‡ÃƒO OU NOME TÃ‰CNICO!
-   - Se o "titulo" for muito genÃ©rico (ex: "OFERTA ESPECIAL"), o subtÃ­tulo DEVE CONTER O NOME DO PRODUTO (ex: "Tablete MastigÃ¡vel Nexgard").
-   - Se o "titulo" jÃ¡ identificou o produto, use uma descriÃ§Ã£o de benefÃ­cio (ex: "AÃ§Ã£o rÃ¡pida contra pulgas").
-5. "palavra_destaque_ouro" / "palavra_destaque": Palavra exata do tÃ­tulo em cor ouro (#ffab00) (ex: "OFERTA", "NEXGARD", "ESPECIAL").
+   - Se o "titulo" for muito genérico (ex: "OFERTA ESPECIAL"), o subtítulo DEVE CONTER O NOME DO PRODUTO (ex: "Tablete Mastigável Nexgard").
+   - Se o "titulo" já identificou o produto, use uma descrição de benefício (ex: "Ação rápida contra pulgas").
+5. "palavra_destaque_ouro" / "palavra_destaque": Palavra exata do título em cor ouro (#ffab00) (ex: "OFERTA", "NEXGARD", "ESPECIAL").
 6. "template_layout":
-   - "split-vertical": Produto formato alto, volumoso ou lista densa de benefÃ­cios.
+   - "split-vertical": Produto formato alto, volumoso ou lista densa de benefícios.
    - "hero-central": Destaque visual centralizado e compacto (frascos, caixas de medicamento).
-7. "bullets_tecnicos" / "diferenciais_tecnicos": Crie EXATAMENTE 3 diferenciais curtos (MÃXIMO DE 5 PALAVRAS CADA ITEM). NÃ£o crie frases longas.
-8. "cta": Chamada para aÃ§Ã£o ("GARANTA JÃ", "COMPRE NA COAGRO", "GARANTA O SEU").
-9. "modulo_preco": Preenchido com a anÃ¡lise da Etapa 1.
-10. "fundo_imagem": Prompt fotogrÃ¡fico realista em portuguÃªs contextualizado ao habitat do produto (ex: galpÃ£o rÃºstico para equipamentos; sala ou gramado para pet; lavoura para sementes).
-11. "legenda_instagram": Legenda persuasiva (se pet, carinhosa; se agro, tÃ©cnica).
+7. "bullets_tecnicos" / "diferenciais_tecnicos": Crie EXATAMENTE 3 diferenciais curtos (MÁXIMO DE 5 PALAVRAS CADA ITEM). Não crie frases longas.
+8. "cta": Chamada para ação ("GARANTA JÁ", "COMPRE NA COAGRO", "GARANTA O SEU").
+9. "modulo_preco": Preenchido com a análise da Etapa 1.
+10. "fundo_imagem": Prompt fotográfico realista em português contextualizado ao habitat do produto (ex: galpão rústico para equipamentos; sala ou gramado para pet; lavoura para sementes).
+11. "legenda_instagram": Legenda persuasiva (se pet, carinhosa; se agro, técnica).
 `;
 
-    if (targetFocus) {
-      instruction += `Foco tÃ©cnico especÃ­fico: ${targetFocus}. `;
+    if (typeof targetFocus === 'string' && targetFocus.trim()) {
+      instruction += `Foco técnico específico: ${targetFocus.trim()}. `;
     }
 
     parts.push({ text: instruction });
@@ -149,7 +160,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
         'DIRETRIZ MESTRE DE GERAÃ‡ÃƒO - COAGRO AGRO STUDIO',
         'DIRETRIZ MESTRE DE GERAÃ‡ÃƒO - COAGRO PET STUDIO'
       ).replace(
-        'produto agropecuÃ¡rio',
+        'produto agropecuário',
         'produto para PETS'
       );
     }
@@ -157,6 +168,13 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
     let parsed: any;
     try {
       let response: any;
+      if (!process.env.GEMINI_API_KEY) {
+        // Sem chave não há chance de sucesso: pular a chamada evita um round-trip
+        // de rede que sempre termina em 403 PERMISSION_DENIED e é logado como erro.
+        const noKeyErr: any = new Error('GEMINI_API_KEY ausente');
+        noKeyErr.noApiKey = true;
+        throw noKeyErr;
+      }
       try {
         response = await ai.models.generateContent({
           model: 'gemini-3.8-flash',
@@ -165,11 +183,14 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
             systemInstruction: dynamicSystemInstruction,
             temperature: 0.15,
             responseMimeType: 'application/json',
+            maxOutputTokens: 2048,
           },
         });
       } catch (firstErr: any) {
-        if (firstErr?.status === 503 || firstErr?.status === 429) {
-          console.warn('Initial gemini-3.8-flash attempt failed (503/429), retrying gemini-3.8-flash in 1s...', firstErr);
+        // Retry SÓ em 503 (indisponibilidade transitória). Repetir em 429 gasta
+        // exatamente a quota que acabou de estourar, sem chance de sucesso.
+        if (firstErr?.status === 503) {
+          console.warn('Initial gemini-3.8-flash attempt failed (503), retrying gemini-3.8-flash in 1s...', firstErr);
           await new Promise(resolve => setTimeout(resolve, 1000));
           response = await ai.models.generateContent({
             model: 'gemini-3.8-flash',
@@ -178,6 +199,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
               systemInstruction: dynamicSystemInstruction,
               temperature: 0.15,
               responseMimeType: 'application/json',
+              maxOutputTokens: 2048,
             },
           });
         } else {
@@ -196,18 +218,22 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
         if (jsonMatch) {
           parsed = JSON.parse(jsonMatch[0]);
         } else {
-          parsed = generateHeuristicAgroContent({ prompt, format, priceInfo: effectivePriceInfo, templateLayout });
+          parsed = generateHeuristicAgroContent({ prompt, format, priceInfo: effectivePriceInfo, templateLayout, appMode });
         }
       }
-    } catch (apiError) {
-      console.warn('Upstream Gemini API error or quota limitation, applying intelligent heuristic fallback:', apiError);
-      parsed = generateHeuristicAgroContent({ prompt, format, priceInfo: effectivePriceInfo, templateLayout });
+    } catch (apiError: any) {
+      if (apiError?.noApiKey) {
+        console.warn('[gemini] GEMINI_API_KEY ausente — conteúdo gerado pelo fallback heurístico local.');
+      } else {
+        console.warn('Upstream Gemini API error or quota limitation, applying intelligent heuristic fallback:', apiError);
+      }
+      parsed = generateHeuristicAgroContent({ prompt, format, priceInfo: effectivePriceInfo, templateLayout, appMode });
     }
 
-    // Strip unwanted noise like "DivisÃ£o AgropecuÃ¡ria"
+    // Strip unwanted noise like "Divisão Agropecuária"
     const stripNoise = (str: string) =>
       typeof str === 'string'
-        ? str.replace(/divis[Ã£a]o\s+agropecu[Ã¡a]ria/gi, '').replace(/\s{2,}/g, ' ').trim()
+        ? str.replace(/divis[ãa]o\s+agropecu[áa]ria/gi, '').replace(/\s{2,}/g, ' ').trim()
         : str;
 
     if (parsed.textos_da_arte) {
@@ -242,7 +268,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
     // 4. Infer & clean title and golden highlight word
     let rawTitle = (parsed.textos_hero?.titulo || parsed.textos_da_arte?.titulo_impacto || parsed.caixa_titulo?.texto || '').trim();
 
-    // Se o tÃ­tulo gerado colocou o nome do produto no tÃ­tulo (ex: "TRITURADOR TR30"), substitui pelo tÃ­tulo de impacto comercial
+    // Se o título gerado colocou o nome do produto no título (ex: "TRITURADOR TR30"), substitui pelo título de impacto comercial
     const lowerTitle = rawTitle.toLowerCase();
     const agroWordsRegex = /campo|lavoura|produtividade|rural|safra|pasto/i;
     if (
@@ -253,7 +279,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
       rawTitle = preAnalysis.suggestedTitle;
     }
 
-    // Regra Estrita: titulo_impacto tem no MÃXIMO 3 palavras em caixa alta
+    // Regra Estrita: titulo_impacto tem no MÁXIMO 3 palavras em caixa alta
     let titleWords = rawTitle
       .trim()
       .split(/\s+/)
@@ -275,7 +301,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
 
     const isWordInTitle = titleWords.some((w: string) => w === palavraOuro.toUpperCase());
     if (!palavraOuro || !isWordInTitle) {
-      const highImpactWords = ['OFERTA', 'RELÃ‚MPAGO', 'ESPECIAL', 'EFICIÃŠNCIA', 'OPORTUNIDADE', 'IMBATÃVEL', 'MÃXIMA', 'BLINDAGEM', 'FORTE', 'PRODUTIVIDADE'];
+      const highImpactWords = ['OFERTA', 'RELÃ‚MPAGO', 'ESPECIAL', 'EFICIÃŠNCIA', 'OPORTUNIDADE', 'IMBATÍVEL', 'MÁXIMA', 'BLINDAGEM', 'FORTE', 'PRODUTIVIDADE'];
       const foundPriority = titleWords.find((w: string) => highImpactWords.includes(w));
       palavraOuro = foundPriority || preAnalysis.suggestedHighlight || titleWords[0] || 'OFERTA';
     }
@@ -283,10 +309,10 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
     // 5. Clean subtitle: DEVE SER O NOME DO PRODUTO + MARCA/MODELO
     let rawSub = (parsed.textos_hero?.subtitulo || parsed.textos_da_arte?.subtitulo || parsed.caixa_subtitulo?.texto || '').trim();
 
-    // Se o subtÃ­tulo estiver vazio ou for a frase genÃ©rica antiga, utiliza o subtÃ­tulo rico extraÃ­do do produto
+    // Se o subtítulo estiver vazio ou for a frase genérica antiga, utiliza o subtítulo rico extraído do produto
     if (
       !rawSub ||
-      rawSub.toLowerCase().includes('soluÃ§Ãµes de alta performance') ||
+      rawSub.toLowerCase().includes('soluções de alta performance') ||
       rawSub.toLowerCase().includes('solucoes de alta performance') ||
       (preAnalysis.isPetProduct && agroWordsRegex.test(rawSub))
     ) {
@@ -309,7 +335,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
     }
 
 
-    // 7. Modulo Preco com formataÃ§Ã£o BRL obrigatÃ³ria e persistÃªncia do modo comercial
+    // 7. Modulo Preco com formatação BRL obrigatória e persistência do modo comercial
     let cleanModuloPreco = {
       ativo: false,
       valor_de: '',
@@ -336,7 +362,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
       rawCond = detectedPrice.condicoes || '';
     }
 
-    // GARANTIA MESTRE DE PREÃ‡O: Se existirem 2 valores, o maior Ã© SEMPRE "valor_de" e o menor Ã© SEMPRE "valor_por"
+    // GARANTIA MESTRE DE PREÃ‡O: Se existirem 2 valores, o maior é SEMPRE "valor_de" e o menor é SEMPRE "valor_por"
     if (rawDe && rawPor) {
       const fDe = parsePriceToFloat(rawDe);
       const fPor = parsePriceToFloat(rawPor);
@@ -352,7 +378,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
         if (detectedPrice.condicoes) {
           rawCond = detectedPrice.condicoes;
         } else {
-          const matchCond = prompt.match(/(em\s+at[Ã©e]\s+\d+\s*x[^\n.,]*|[aÃ ]\s*vista[^\n.,]*|no\s+cart[Ã£a]o[^\n.,]*)/i);
+          const matchCond = prompt.match(/(em\s+at[ée]\s+\d+\s*x[^\n.,]*|[aà]\s*vista[^\n.,]*|no\s+cart[ãa]o[^\n.,]*)/i);
           if (matchCond) {
             rawCond = matchCond[1].toUpperCase().trim();
           }
@@ -412,8 +438,8 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
 
     // 8. CTA text respeitando o modo comercial e a categoria
     let cleanCta = (parsed.textos_da_arte?.cta || '').trim();
-    if (!cleanCta || cleanCta === 'GARANTA JÃ O SEU') {
-      if (finalCommMode === 'PROMOTION') cleanCta = 'GARANTA JÃ O SEU';
+    if (!cleanCta || cleanCta === 'GARANTA JÁ O SEU') {
+      if (finalCommMode === 'PROMOTION') cleanCta = 'GARANTA JÁ O SEU';
       else if (finalCommMode === 'SINGLE_PRICE') cleanCta = 'CONSULTE DISPONIBILIDADE';
       else if (fullContext.toLowerCase().includes('vacina') || fullContext.toLowerCase().includes('veterin')) {
         cleanCta = 'FALE COM NOSSA EQUIPE';
@@ -433,12 +459,12 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
 
     const suggestedByAi = parsed.template_layout === 'hero-central' || parsed.template_layout === 'split-vertical' ? parsed.template_layout : null;
     
-    // Se o usuÃ¡rio fez seleÃ§Ã£o manual explÃ­cita no painel, respeita; caso contrÃ¡rio, usa a recomendaÃ§Ã£o inteligente da IA/Produto
+    // Se o usuário fez seleção manual explícita no painel, respeita; caso contrário, usa a recomendação inteligente da IA/Produto
     let inferredTemplate: string;
     if (isManualTemplate && templateLayout) {
       inferredTemplate = templateLayout;
     } else if (preAnalysis.recommendedLayout === 'split-vertical') {
-      // MÃ¡quinas e equipamentos sÃ£o obrigatoriamente split para nÃ£o sobrepor o subtÃ­tulo
+      // Máquinas e equipamentos são obrigatoriamente split para não sobrepor o subtítulo
       inferredTemplate = 'split-vertical';
     } else {
       inferredTemplate = suggestedByAi || preAnalysis.recommendedLayout || 'hero-central';
@@ -448,8 +474,8 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
 
     // 11. Final structured render object satisfying exact schema and backward compatibility
     const finalRenderObject = {
-      // A linha de negÃ³cio do conteÃºdo reflete o escopo em que a arte foi gerada.
-      // CorreÃ§Ã£o: antes era `'AGRO'` fixo, mesmo em modo Pet.
+      // A linha de negócio do conteúdo reflete o escopo em que a arte foi gerada.
+      // Correção: antes era `'AGRO'` fixo, mesmo em modo Pet.
       linha: appMode === 'PET' ? 'PET' : 'AGRO',
       tipo_postagem: tipoPostagem,
       formato_gerado: format === 'story' ? 'Story' : 'Feed',
@@ -492,7 +518,7 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
     console.error('[GEMINI API ERROR - generate-content]:', error);
     return res.status(502).json({
       success: false,
-      error: 'Falha na geraÃ§Ã£o de IA. Verifique sua quota/chave API ou tente novamente mais tarde.',
+      error: 'Falha na geração de IA. Verifique sua quota/chave API ou tente novamente mais tarde.',
       code: error?.status || 502
     });
   }
@@ -500,21 +526,32 @@ SÃ“ APÃ“S A ANÃLISE COMPLETA ACIMA, gere todos os campos de renderizaÃ
 
 
 generateRouter.post('/api/generate-image', apiLimiter, async (req, res) => {
+  // Endpoint SEM consumidor no cliente (nenhum fetch para /api/generate-image em
+  // src/) e caro (geração de imagem paga). Desativado por padrão para não ficar
+  // aberto a anônimos queimando a quota da chave. Reativar com ENABLE_IMAGE_API=true.
+  if (process.env.ENABLE_IMAGE_API !== 'true') {
+    return res.status(404).json({ success: false, error: 'Rota não encontrada.' });
+  }
   try {
     const { prompt, aspectRatio = '1:1', baseImage, mimeType = 'image/jpeg' } = req.body;
 
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt Ã© obrigatÃ³rio.' });
+    if (typeof prompt !== 'string' || !prompt.trim()) {
+      return res.status(400).json({ error: 'Prompt é obrigatório.' });
     }
+
+    const ALLOWED_IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp'];
+    const safeMimeType = ALLOWED_IMAGE_MIME.includes(mimeType) ? mimeType : 'image/jpeg';
+    const ALLOWED_ASPECT = ['1:1', '3:4', '4:3', '9:16', '16:9'];
+    const safeAspectRatio = ALLOWED_ASPECT.includes(aspectRatio) ? aspectRatio : '1:1';
 
     const parts: any[] = [];
 
-    if (baseImage) {
+    if (typeof baseImage === 'string' && baseImage) {
       const cleanBase64 = baseImage.replace(/^data:[^;]+;base64,/, '');
       parts.push({
         inlineData: {
           data: cleanBase64,
-          mimeType: mimeType || 'image/jpeg',
+          mimeType: safeMimeType,
         },
       });
     }
@@ -530,7 +567,7 @@ generateRouter.post('/api/generate-image', apiLimiter, async (req, res) => {
         contents: { parts },
         config: {
           imageConfig: {
-            aspectRatio: aspectRatio as any,
+            aspectRatio: safeAspectRatio,
           },
         },
       });
@@ -541,7 +578,7 @@ generateRouter.post('/api/generate-image', apiLimiter, async (req, res) => {
         contents: { parts },
         config: {
           imageConfig: {
-            aspectRatio: aspectRatio as any,
+            aspectRatio: safeAspectRatio,
           },
         },
       });
@@ -567,7 +604,7 @@ generateRouter.post('/api/generate-image', apiLimiter, async (req, res) => {
     console.error('[GEMINI API ERROR - generate-image]:', error);
     return res.status(502).json({
       success: false,
-      error: 'Falha na geraÃ§Ã£o de imagem com IA. Verifique sua quota/chave API ou tente novamente.',
+      error: 'Falha na geração de imagem com IA. Verifique sua quota/chave API ou tente novamente.',
       code: error?.status || 502
     });
   }
@@ -575,5 +612,5 @@ generateRouter.post('/api/generate-image', apiLimiter, async (req, res) => {
 
 // --- ROTA DE REMOÃ‡ÃƒO DE FUNDO VIA HUGGING FACE (RMBG 1.4) ---
 // NOTA DE SEGURANÃ‡A: o endpoint GET /api/hf-token foi REMOVIDO porque expunha
-// o segredo do servidor (HF_TOKEN/FAL_KEY) ao navegador. A remoÃ§Ã£o de fundo
+// o segredo do servidor (HF_TOKEN/FAL_KEY) ao navegador. A remoção de fundo
 // continua 100% server-side via POST /api/remove-bg abaixo.

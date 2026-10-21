@@ -8,6 +8,7 @@ export interface PromoPetOrangeA4Props {
   codigo?: string;
   headerText?: string;
   discountBadge?: string;
+  validityText?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export const PromoPetOrangeA4: React.FC<PromoPetOrangeA4Props> = ({
   codigo,
   headerText = 'OFERTA',
   discountBadge,
+  validityText,
 }) => {
   const priceParts = currentPrice.replace('R$', '').trim().split(',');
   const mainPrice = priceParts[0] || '0';
@@ -126,11 +128,12 @@ export const PromoPetOrangeA4: React.FC<PromoPetOrangeA4Props> = ({
         {/* ZONA 4: RODAPÉ CORPORATIVO COAGRO PET */}
         <div className="w-full h-[15cqw] flex items-center justify-between border-t border-white/20 pt-[0.8cqw] pb-[0.5cqw] px-[1cqw] shrink-0">
           <div className="text-left flex flex-col justify-center">
-            <span className="font-exo2 font-black uppercase text-white tracking-wide leading-tight" style={{ fontSize: '3.2cqw' }}>
-              Aproveite!
-            </span>
+            {validityText && (
+              <span className="font-exo2 font-bold text-white tracking-wide leading-tight" style={{ fontSize: '3.1cqw' }}>
+                {validityText}
+              </span>
+            )}
             <div className="flex items-center gap-[1cqw] text-orange-100 font-bold uppercase" style={{ fontSize: '2.8cqw' }}>
-              <span>Últimas unidades!</span>
               {codigo && (
                 <>
                   <span>•</span>

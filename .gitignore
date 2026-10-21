@@ -7,6 +7,9 @@ coverage/
 .env*
 !.env.example
 dist_electron/
+# bundle gerado por `npm run build:server` (entrada da Vercel: api/index.ts)
+server.js
+reports/
 scratch/
 *.zip
 tests/e2e-visual/temp-profile/

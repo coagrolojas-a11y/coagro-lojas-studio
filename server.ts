@@ -1,5 +1,4 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -14,23 +13,30 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
+// Necessário atrás de proxy (Vercel/Cloud Run) para que express-rate-limit
+// enxergue o IP real do cliente (X-Forwarded-For) em vez do IP do router.
+app.set('trust proxy', 1);
+
 app.use(express.json({ limit: '30mb' }));
 
 app.use('/', generateRouter);
 
 // NOTA: a rota POST /api/remove-bg (Hugging Face / RMBG-1.4) foi REMOVIDA.
-// O recorte de fundo Ã© feito 100% no cliente (Web Worker + Canvas em
+// O recorte de fundo é feito 100% no cliente (Web Worker + Canvas em
 // src/lib/imageTransparency.ts), com fallback local por chroma-key.
-// Manter o endpoint era cÃ³digo morto e induzia Ã  falsa ideia de que HF_TOKEN
-// Ã© prÃ©-requisito da aplicaÃ§Ã£o. 
+// Manter o endpoint era código morto e induzia à falsa ideia de que HF_TOKEN
+// é pré-requisito da aplicação. 
 
 async function startServer() {
-  // 404 JSON para qualquer rota da API nÃ£o interceptada acima (antes do fallback do SPA)
+  // 404 JSON para qualquer rota da API não interceptada acima (antes do fallback do SPA)
   app.use('/api', (_req, res) => {
-    res.status(404).json({ error: 'Rota da API nÃ£o encontrada ou removida.' });
+    res.status(404).json({ error: 'Rota da API não encontrada ou removida.' });
   });
 
   if (process.env.NODE_ENV !== 'production') {
+    // Import dinâmico: o Vite só é necessário no dev. Manter o import estático
+    // faria o bundle server.js (Vercel) exigir vite em runtime.
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',

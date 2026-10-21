@@ -1,13 +1,15 @@
 /**
  * Service Worker Oficial — Coagro Agro Studio (PWA Offline Cache)
- * Versão do Cache: coagro-studio-v1
+ * Versão do Cache: injetada no build por scripts/version-sw.mjs
+ * (formato: coagro-studio-<hash do index.html>)
  *
  * Estratégia híbrida:
  * - HTML / Navegação: NetworkFirst com fallback para cache raiz (garante F5 offline sem tela branca)
  * - Assets locais (/assets/): CacheFirst com background revalidation
- * - Expurgo estrito de versões antigas no activate
+ * - Expurgo estrito de versões antigas no activate (CACHE_NAME muda a cada build)
  */
 
+// Valor inicial; o build grava `coagro-studio-<hash>` em dist/sw.js.
 const CACHE_NAME = 'coagro-studio-v1';
 
 const PRECACHE_ASSETS = [
@@ -66,9 +68,10 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          return caches.match('/index.html') || caches.match('/');
-        })
+        .catch(() =>
+          // caches.match devolve Promise: precisa de .then para saber se achou.
+          caches.match('/index.html').then((r) => r || caches.match('/'))
+        )
     );
     return;
   }
@@ -91,6 +94,11 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+
+  // Só GET é cacheável. Deixar POST (ex.: /api/generate-content) cair aqui
+  // fazia o .catch devolver caches.match(POST) = undefined -> rejeição confusa
+  // para o fetch da IA quando offline.
+  if (request.method !== 'GET') return;
 
   // Requisições gerais do app -> Network com fallback para Cache
   event.respondWith(

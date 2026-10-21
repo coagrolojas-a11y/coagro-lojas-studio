@@ -1,6 +1,7 @@
 import React from 'react';
 import { useArtworkForm } from '../hooks/useArtworkForm';
 import type { InputPanelProps } from '../hooks/useArtworkForm';
+import { OfferValidityFields } from './OfferValidityFields';
 
 export type { InputPanelProps };
 
@@ -24,6 +25,8 @@ import {
 export const InputPanel: React.FC<InputPanelProps> = (props) => {
   const {
     appMode,
+    offerPeriod,
+    onOfferPeriodChange,
     bgProcessingStage,
     bgProgressPercent,
     cachedRawCutout,
@@ -84,6 +87,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col font-['Inter']">
       <div className="p-5 sm:p-6 space-y-6">
+        <OfferValidityFields value={offerPeriod} onChange={onOfferPeriodChange} />
         {!isGenerated && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
@@ -219,4 +223,3 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
     </div>
   );
 };
-

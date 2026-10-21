@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDiscount, parseBrlToNumber } from '../../src/lib/priceCalculator';
+import { calculateDiscount, parseBrlToCents, parseBrlToNumber } from '../../src/lib/priceCalculator';
 
 describe('priceCalculator', () => {
   it('converte strings BRL para número corretamente', () => {
@@ -8,6 +8,14 @@ describe('priceCalculator', () => {
     expect(parseBrlToNumber('1.250,50')).toBe(1250.5);
     expect(parseBrlToNumber('')).toBe(0);
     expect(parseBrlToNumber(null)).toBe(0);
+  });
+
+  it('analisa valores em centavos sem aceitar entradas ambíguas ou inválidas', () => {
+    expect(parseBrlToCents('R$ 1.250,90')).toBe(125090);
+    expect(parseBrlToCents('1.250')).toBe(125000);
+    expect(parseBrlToCents('58,9')).toBe(5890);
+    expect(parseBrlToCents('R$ 40,00xyz')).toBeNull();
+    expect(parseBrlToCents('-40,00')).toBeNull();
   });
 
   it('calcula desconto e economia de 58,00 para 44,00 corretamente (24% OFF)', () => {

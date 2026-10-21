@@ -9,19 +9,12 @@ export function generateHeuristicAgroContent(params: {
   format?: string;
   priceInfo?: any;
   templateLayout?: string;
+  appMode?: string;
 }): any {
   const p = (params.prompt || '').toLowerCase();
   const isStory = params.format === 'story';
 
   const detected = extractPriceFromText(params.prompt);
-  const hasPrice =
-    Boolean(params.priceInfo?.ativo && params.priceInfo?.valor_por) ||
-    detected.hasPrice ||
-    p.includes('r$') ||
-    p.includes('por') ||
-    /\b\d+[,.]\d{2}\b/.test(p) ||
-    p.includes('promoção') ||
-    p.includes('oferta');
 
   let deVal = params.priceInfo?.valor_de || (detected.hasPrice ? detected.valorDe : '') || '';
   let porVal = params.priceInfo?.valor_por || (detected.hasPrice ? detected.valorPor : '') || '';
@@ -37,6 +30,13 @@ export function generateHeuristicAgroContent(params: {
       porVal = temp;
     }
   }
+
+  // DEFEITO CORRIGIDO: `hasPrice` era decidido por SUBSTRING do prompt —
+  // "Fertilizante importado" e "proporção ideal" contêm "por", e "oferta" em
+  // texto sem valor ligava `modulo_preco.ativo = true` com `valor_por: ""`,
+  // imprimindo um bloco de preço VAZIO na arte. Agora só há preço se existir
+  // valor efetivamente extraído/formatado.
+  const hasPrice = Boolean(deVal || porVal);
 
   const formattedDe = deVal ? formatBrlWithSymbol(deVal) : '';
   const formattedPor = porVal ? formatBrlWithSymbol(porVal) : '';
@@ -83,7 +83,9 @@ export function generateHeuristicAgroContent(params: {
   const backdropUrl = inferAgroBackground(`${backdropPrompt} ${params.prompt || ''}`);
 
   return {
-    linha: 'AGRO',
+    // DEFEITO CORRIGIDO: era fixo em 'AGRO', então o fallback de PET devolvia
+    // metadado de linha errado (o caminho por IA já respeitava appMode).
+    linha: params.appMode === 'PET' ? 'PET' : 'AGRO',
     tipo_postagem: hasTwo ? 'promocao' : hasPrice ? 'preco-unico' : 'informativo_novidade',
     template_layout: chosenLayout,
     formato_gerado: isStory ? 'Story' : 'Feed',

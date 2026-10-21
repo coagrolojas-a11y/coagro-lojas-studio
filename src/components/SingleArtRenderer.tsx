@@ -8,6 +8,7 @@ import { resolveCommunicationMode } from '../lib/communicationMode';
 import { cleanNoise, normalizeBenefits, resolveDefaultCta } from '../lib/contentNormalizer';
 import { resolveBackgroundFromPrompt } from '../lib/backgroundResolver';
 import { processAdaptiveProduct, AdaptiveProductInfo } from '../lib/alphaBounds';
+import { formatOfferPeriod, OfferPeriod } from '../lib/offerPeriod';
 import {
   getPalette,
   normalizeScopeId,
@@ -37,6 +38,7 @@ import { InformativeCentral } from './art-renderer/templates/InformativeCentral'
 import { InformativeSplit } from './art-renderer/templates/InformativeSplit';
 import { PromoSimples } from './art-renderer/templates/PromoSimples';
 import { WhatsappStatusVertical } from './art-renderer/templates/WhatsappStatusVertical';
+import { CampaignBadgeContent } from './art-renderer/CampaignBadgeContent';
 
 interface SingleArtRendererProps {
   content: AgroPostContent;
@@ -53,6 +55,8 @@ interface SingleArtRendererProps {
   preserveProductBackground?: boolean;
   scopeOverride?: ScopeId; // Modo manual/tenant: força a marca (ver brand.config.ts)
   discountBadge?: string; // Selo de desconto calculado (ex: "24% OFF")
+  offerPeriod?: OfferPeriod;
+  validityText?: string;
 }
 
 export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
@@ -70,6 +74,8 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
   preserveProductBackground,
   scopeOverride,
   discountBadge,
+  offerPeriod,
+  validityText: providedValidityText,
 }) => {
   const isStory = format === 'story';
 
@@ -133,7 +139,9 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
     mode === 'PROMOTION' && price?.valor_de
       ? formatBrlWithSymbol(price.valor_de)
       : '';
-  const condition = cleanNoise(price?.condicoes_pagamento || '');
+  const validityText = providedValidityText || formatOfferPeriod(offerPeriod);
+  const paymentCondition = cleanNoise(price?.condicoes_pagamento || '');
+  const condition = [paymentCondition, validityText].filter(Boolean).join(' · ');
   const rawCta = content.textos_da_arte?.cta;
   const cta = cleanNoise(
     rawCta || (title ? resolveDefaultCta(mode, content.categoria_produto) : '')
@@ -274,6 +282,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             codigo={codigoProduto}
             headerText={badgeText}
             discountBadge={discountBadge}
+            validityText={validityText}
           />
         ) : activeTemplate === 'promo-agro-a4' ? (
           <PromoAgroA4 
@@ -283,6 +292,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             codigo={codigoProduto}
             headerText={badgeText}
             discountBadge={discountBadge}
+            validityText={validityText}
           />
         ) : activeTemplate === 'promo-pet-a4' ? (
           <PromoPetA4 
@@ -292,6 +302,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             codigo={codigoProduto}
             headerText={badgeText}
             discountBadge={discountBadge}
+            validityText={validityText}
           />
         ) : activeTemplate === 'promo-pet-orange-a4' ? (
           <PromoPetOrangeA4 
@@ -301,6 +312,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             codigo={codigoProduto}
             headerText={badgeText}
             discountBadge={discountBadge}
+            validityText={validityText}
           />
         ) : activeTemplate === 'promo-mono-a4' ? (
           <PromoMonoA4 
@@ -310,6 +322,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             codigo={codigoProduto}
             headerText={badgeText}
             discountBadge={discountBadge}
+            validityText={validityText}
           />
         ) : activeTemplate === 'unified-central' ? (
           <UnifiedCentral
@@ -509,14 +522,20 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
         )}
 
         {/* Selo Promocional Flutuante (Injetado via SingleArtRenderer) */}
-        {badgeText && badgeText !== 'Sem Selo' && !['promo-text-only', 'promo-agro-a4', 'promo-mono-a4', 'promo-pet-a4', 'promo-pet-orange-a4', 'whatsapp-status', 'pet-central', 'promo-simples'].includes(activeTemplate) && (
-          <div className={`absolute top-5 right-5 z-50 px-3 py-1 rounded-tl-xl rounded-br-xl font-exo2 font-black uppercase text-[13px] sm:text-[15px] shadow-lg transform rotate-3 ${
-            scope === 'PET' 
-              ? 'bg-[#ffab00] text-[#001C71] border border-[#001C71]/20' 
-              : 'bg-[#ffab00] text-[#004d40] border border-[#004d40]/20'
-          }`}>
-            {badgeText}
-          </div>
+        {badgeText && badgeText !== 'Sem Selo' && !['promo-text-only', 'promo-agro-a4', 'promo-mono-a4', 'promo-pet-a4', 'promo-pet-orange-a4', 'whatsapp-status', 'pet-central'].includes(activeTemplate) && (
+          badgeText === 'SALDÃO COAGRO' ? (
+            <div className="absolute top-5 right-5 z-50 w-32 sm:w-40">
+              <CampaignBadgeContent badge={badgeText} />
+            </div>
+          ) : (
+            <div className={`absolute top-5 right-5 z-50 px-3 py-1 rounded-tl-xl rounded-br-xl font-exo2 font-black uppercase text-[13px] sm:text-[15px] shadow-lg transform rotate-3 ${
+              scope === 'PET'
+                ? 'bg-[#ffab00] text-[#001C71] border border-[#001C71]/20'
+                : 'bg-[#ffab00] text-[#004d40] border border-[#004d40]/20'
+            }`}>
+              {badgeText}
+            </div>
+          )
         )}
       </div>
     </div>

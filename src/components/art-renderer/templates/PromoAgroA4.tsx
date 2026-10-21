@@ -8,6 +8,7 @@ export interface PromoAgroA4Props {
   codigo?: string;
   headerText?: string;
   discountBadge?: string;
+  validityText?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export const PromoAgroA4: React.FC<PromoAgroA4Props> = ({
   codigo,
   headerText = 'OFERTA',
   discountBadge,
+  validityText,
 }) => {
   const priceParts = currentPrice.replace('R$', '').trim().split(',');
   const mainPrice = priceParts[0] || '0';
@@ -126,9 +128,11 @@ export const PromoAgroA4: React.FC<PromoAgroA4Props> = ({
       {/* ZONA 4: RODAPÉ COM LOGO COAGRO VERTICAL (CASINHA EM CIMA) */}
       <div className="w-full h-[14cqw] flex items-center justify-between border-t-[0.6cqw] border-[#ffab00]/40 px-[5cqw] shrink-0 bg-[#004d40] z-10">
         <div className="flex flex-col text-left">
-          <p className="font-exo2 font-black uppercase tracking-wider text-white" style={{ fontSize: '3.6cqw' }}>
-            APROVEITE! ÚLTIMAS UNIDADES!
-          </p>
+          {validityText && (
+            <p className="font-exo2 font-bold text-white leading-tight" style={{ fontSize: '3.1cqw' }}>
+              {validityText}
+            </p>
+          )}
           {codigo && (
             <div className="mt-[0.2cqw] font-mono font-bold opacity-90 text-emerald-200" style={{ fontSize: '2.5cqw' }}>
               CÓD: {codigo}

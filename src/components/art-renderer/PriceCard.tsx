@@ -42,7 +42,7 @@ export const PriceCard: React.FC<PriceCardProps> = ({
       </div>
 
       {condition && (
-        <span className="mt-0.5 text-[9px] font-extrabold uppercase tracking-wider whitespace-nowrap">
+        <span className="mt-0.5 max-w-[180px] whitespace-normal text-center text-[8px] font-extrabold uppercase leading-tight tracking-wide">
           {condition}
         </span>
       )}

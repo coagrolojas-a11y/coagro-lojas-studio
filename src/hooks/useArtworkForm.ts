@@ -34,6 +34,7 @@ import { extractPriceFromText, parsePriceToFloat } from '../lib/priceParser';
 import { formatBrlValue, formatBrlWithSymbol } from '../lib/priceFormatter';
 import { resolveCommunicationMode, CommunicationMode } from '../lib/communicationMode';
 import { resolveDefaultCta } from '../lib/contentNormalizer';
+import { OfferPeriod } from '../lib/offerPeriod';
 
 export interface InputPanelProps {
   appMode: 'AGRO' | 'PET';
@@ -66,6 +67,8 @@ export interface InputPanelProps {
   onSetProductImage: (url: string) => void;
   currentContent: AgroPostContent;
   onUpdateContent?: (content: AgroPostContent) => void;
+  offerPeriod: OfferPeriod;
+  onOfferPeriodChange: (period: OfferPeriod) => void;
   selectedFormat: CanvasFormat;
   onSelectFormat: (format: CanvasFormat) => void;
   selectedTemplate: TemplateLayout;
@@ -92,6 +95,7 @@ export function useArtworkForm(props: InputPanelProps) {
   imageBoxFormat = 'rectangular',
   onSelectImageBoxFormat,
   } = props;
+  const { offerPeriod, onOfferPeriodChange } = props;
 
   const [userCommand, setUserCommand] = useState('');
   const [showPriceFields, setShowPriceFields] = useState(false);
@@ -744,6 +748,8 @@ export function useArtworkForm(props: InputPanelProps) {
 
   return {
     appMode,
+    offerPeriod,
+    onOfferPeriodChange,
     bgProcessingStage,
     bgProgressPercent,
     cachedRawCutout,

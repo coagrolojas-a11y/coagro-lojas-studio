@@ -15,6 +15,8 @@ import { SocialManualEditor, SocialManualData } from './components/SocialManualE
 import { getDefaultSocialManualData, syncSocialManualDataToContent } from './lib/sharedFormState';
 import { PosterSheetContainer, PosterSheetGrid } from './components/art-renderer/PosterSheetContainer';
 import { calculateDiscount } from './lib/priceCalculator';
+import { validateArtworkForExport } from './lib/artworkValidation';
+import { OfferPeriod, formatOfferPeriod, getSaoPauloDate } from './lib/offerPeriod';
 import { getAccessToken } from './lib/firebase';
 import { uploadToGoogleDrive } from './lib/googleDrive';
 import { resolveDefaultTemplate } from './lib/layoutRules';
@@ -39,6 +41,10 @@ export default function App() {
   const [posterHeaderText, setPosterHeaderText] = useState<string>('OFERTA');
   const [posterGridFormat, setPosterGridFormat] = useState<PosterSheetGrid>('1_PER_PAGE');
   const [showDiscountBadge, setShowDiscountBadge] = useState<boolean>(true);
+  const [offerPeriod, setOfferPeriod] = useState<OfferPeriod>(() => ({
+    startDate: getSaoPauloDate(),
+    endDate: '',
+  }));
   const [manualPosterData, setManualPosterData] = useState<PosterManualData>({
     codigo: '12345',
     titulo: 'RAÇÃO TUTTICANIS SELECT 10.1 KG',
@@ -236,6 +242,19 @@ export default function App() {
   const [batchSelectedItems, setBatchSelectedItems] = useState<BatchItem[]>([]);
 
   const handleStartBatch = (items: BatchItem[], format: 'PNG' | 'PDF') => {
+    const blockers = items.flatMap((item) =>
+      validateArtworkForExport({
+        title: item.titulo,
+        priceFrom: item.valorDe,
+        priceTo: item.valorPor,
+        offerPeriod,
+        requirePrice: true,
+      }).blockers
+    );
+    if (blockers.length) {
+      showNotice(blockers[0]);
+      return;
+    }
     setBatchExportFormat(format);
     setBatchTemplateToRender(posterTemplate);
     setBatchHeaderTextToRender(posterHeaderText);
@@ -247,6 +266,19 @@ export default function App() {
     template: PosterTemplateLayout,
     badgeText: string
   ) => {
+    const blockers = items.flatMap((item) =>
+      validateArtworkForExport({
+        title: item.titulo,
+        priceFrom: item.valorDe,
+        priceTo: item.valorPor,
+        offerPeriod,
+        requirePrice: true,
+      }).blockers
+    );
+    if (blockers.length) {
+      showNotice(blockers[0]);
+      return;
+    }
     setBatchExportFormat('PDF');
     setBatchTemplateToRender(template);
     setBatchHeaderTextToRender(badgeText);
@@ -283,6 +315,23 @@ export default function App() {
 
   // Auto-save to Google Drive in background for internal comparison
   const triggerDriveAutoSave = async (contentToSave: AgroPostContent) => {
+    const price = contentToSave.modulo_preco || contentToSave.textos_da_arte?.modulo_preco;
+    const title =
+      contentToSave.textos_da_arte?.titulo_impacto ||
+      contentToSave.textos_hero?.titulo ||
+      contentToSave.caixa_titulo?.texto ||
+      '';
+    const validation = validateArtworkForExport({
+      title,
+      priceFrom: price?.valor_de,
+      priceTo: price?.valor_por,
+      offerPeriod,
+    });
+    if (validation.blockers.length) {
+      console.warn('Auto-save no Drive ignorado por pendência de exportação:', validation.blockers[0]);
+      return;
+    }
+
     // Blindagem offline: não tenta upload em background se o navegador estiver sem conexão
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       return;
@@ -296,12 +345,9 @@ export default function App() {
           const el = document.getElementById('agro-single-art-canvas');
           if (!el) return;
           const dataUrl = await toPng(el, { quality: 1, pixelRatio: 2, cacheBust: true });
-          const title =
-            contentToSave.textos_da_arte?.titulo_impacto ||
-            contentToSave.caixa_titulo?.texto ||
-            'Campanha_Agro';
+          const fileTitle = title || 'Campanha_Agro';
           await uploadToGoogleDrive({
-            name: `Coagro_Agro_${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`,
+            name: `Coagro_Agro_${fileTitle.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.png`,
             mimeType: 'image/png',
             data: dataUrl,
             description: `Auto-salvo internamente para fins de comparação.\nLegenda: ${contentToSave.legenda_instagram || contentToSave.legenda_post || ''}`,
@@ -323,8 +369,49 @@ export default function App() {
     setTimeout(() => setDownloadNotice(null), 4000);
   };
 
+  const validateActiveArtwork = () => {
+    if (currentModule === 'STORE_POSTERS') {
+      const products = posterMode === 'BATCH' && batchSelectedItems.length
+        ? batchSelectedItems.slice(0, posterGridFormat === '4_PER_PAGE' ? 4 : posterGridFormat === '2_PER_PAGE' ? 2 : 1)
+        : [manualPosterData];
+      const results = products.map((item) =>
+        validateArtworkForExport({
+          title: item.titulo,
+          priceFrom: item.valorDe,
+          priceTo: item.valorPor,
+          offerPeriod,
+          requirePrice: true,
+        })
+      );
+      return {
+        blockers: results.flatMap((result) => result.blockers),
+        warnings: results.flatMap((result) => result.warnings),
+      };
+    }
+
+    const title = socialMode === 'MANUAL'
+      ? socialManualData.titulo
+      : currentContent.textos_da_arte?.titulo_impacto ||
+        currentContent.textos_hero?.titulo ||
+        currentContent.caixa_titulo?.texto ||
+        '';
+    const price = currentContent.modulo_preco || currentContent.textos_da_arte?.modulo_preco;
+    return validateArtworkForExport({
+      title,
+      priceFrom: socialMode === 'MANUAL' ? socialManualData.valorDe : price?.valor_de,
+      priceTo: socialMode === 'MANUAL' ? socialManualData.valorPor : price?.valor_por,
+      offerPeriod,
+    });
+  };
+
   const handleDownloadCanvas = async (elementId: string, suffix: string) => {
     try {
+      const validation = validateActiveArtwork();
+      if (validation.blockers.length) {
+        showNotice(`Exportação bloqueada: ${validation.blockers[0]}`);
+        return;
+      }
+      if (validation.warnings.length) showNotice(`Atenção: ${validation.warnings[0]}`);
       const el = document.getElementById(elementId);
       if (!el) {
         showNotice('⚠️ Elemento da arte não encontrado.');
@@ -353,6 +440,12 @@ export default function App() {
 
   const handleDownloadPdf = async (elementId: string, suffix: string) => {
     try {
+      const validation = validateActiveArtwork();
+      if (validation.blockers.length) {
+        showNotice(`Exportação bloqueada: ${validation.blockers[0]}`);
+        return;
+      }
+      if (validation.warnings.length) showNotice(`Atenção: ${validation.warnings[0]}`);
       const el = document.getElementById(elementId);
       if (!el) {
         showNotice('⚠️ Elemento da arte não encontrado.');
@@ -389,6 +482,12 @@ export default function App() {
 
   const handlePrintCanvas = async (elementId: string) => {
     try {
+      const validation = validateActiveArtwork();
+      if (validation.blockers.length) {
+        showNotice(`Exportação bloqueada: ${validation.blockers[0]}`);
+        return;
+      }
+      if (validation.warnings.length) showNotice(`Atenção: ${validation.warnings[0]}`);
       const el = document.getElementById(elementId);
       if (!el) {
         showNotice('⚠️ Elemento da arte não encontrado para impressão.');
@@ -694,6 +793,8 @@ export default function App() {
                 format={canvasFormat}
                 onFormatChange={handleSelectFormat}
                 data={socialManualData}
+                offerPeriod={offerPeriod}
+                onOfferPeriodChange={setOfferPeriod}
                 onChange={(newData) => {
                   setSocialManualData(newData);
                   if (newData.theme) {
@@ -719,6 +820,8 @@ export default function App() {
                 currentImage={productImage}
                 onSetProductImage={(url) => setProductImage(url)}
                 currentContent={currentContent}
+                offerPeriod={offerPeriod}
+                onOfferPeriodChange={setOfferPeriod}
                 onUpdateContent={(updated) => setCurrentContent(updated)}
                 selectedFormat={canvasFormat}
                 onSelectFormat={handleSelectFormat}
@@ -849,6 +952,7 @@ export default function App() {
                     badgeText={socialManualData.badge && socialManualData.badge !== 'Sem Selo' ? socialManualData.badge : undefined}
                     preserveProductBackground={socialManualData.preserveProductBackground}
                     scopeOverride={appMode}
+                    validityText={formatOfferPeriod(offerPeriod)}
                   />
                   <div className="w-full max-w-[390px] mt-2">
                     <button
@@ -1003,6 +1107,8 @@ export default function App() {
                       data={manualPosterData}
                       onChange={setManualPosterData}
                       appMode={appMode}
+                      offerPeriod={offerPeriod}
+                      onOfferPeriodChange={setOfferPeriod}
                       onSendToSocial={(poster) => {
                         setSocialManualData(prev => ({
                           ...prev,
@@ -1116,6 +1222,7 @@ export default function App() {
                             containerId={`preview-batch-inner-${item.id}-${idx}`}
                             badgeText={posterHeaderText}
                             scopeOverride={appMode}
+                            validityText={formatOfferPeriod(offerPeriod)}
                             discountBadge={(() => {
                               if (!showDiscountBadge) return undefined;
                               const discount = calculateDiscount(item.valorDe, item.valorPor);
@@ -1146,6 +1253,7 @@ export default function App() {
                         containerId="preview-poster-inner"
                         badgeText={posterHeaderText}
                         scopeOverride={appMode}
+                        validityText={formatOfferPeriod(offerPeriod)}
                         discountBadge={(() => {
                           if (!showDiscountBadge) return undefined;
                           const discount = calculateDiscount(manualPosterData.valorDe, manualPosterData.valorPor);
@@ -1201,6 +1309,7 @@ export default function App() {
           headerText={batchHeaderTextToRender}
           gridFormat={posterGridFormat}
           showDiscountBadge={showDiscountBadge}
+          offerPeriod={offerPeriod}
           scope={appMode}
           onClose={() => setBatchItemsToRender(null)}
         />

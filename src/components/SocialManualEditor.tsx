@@ -4,6 +4,8 @@ import { TemplateLayout, CanvasFormat } from '../types/agro';
 import { removeWhiteBackground, processProductImage } from '../lib/imageTransparency';
 import { sanitizeErpTitle } from '../lib/erpSanitizer';
 import { findProductBySku, saveProductToStorage } from '../lib/productStorage';
+import { OfferValidityFields } from './OfferValidityFields';
+import { OfferPeriod } from '../lib/offerPeriod';
 
 import type { SocialManualData } from '../lib/sharedFormState';
 export type { SocialManualData };
@@ -19,6 +21,8 @@ interface SocialManualEditorProps {
   onChange: (data: SocialManualData) => void;
   productImage: string;
   onSetProductImage: (url: string) => void;
+  offerPeriod: OfferPeriod;
+  onOfferPeriodChange: (period: OfferPeriod) => void;
 }
 
 export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
@@ -32,6 +36,8 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
   onChange,
   productImage,
   onSetProductImage,
+  offerPeriod,
+  onOfferPeriodChange,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -231,6 +237,7 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
       </div>
 
       <div className="p-5 sm:p-6 space-y-6">
+        <OfferValidityFields value={offerPeriod} onChange={onOfferPeriodChange} />
         {/* Upload de Imagem do Produto */}
         <div>
           <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
@@ -599,6 +606,7 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                   <option value="FECHA MÊS">Fecha Mês</option>
                   <option value="SUPER PREÇO">Super Preço</option>
                   <option value="LIQUIDAÇÃO">Liquidação</option>
+                  <option value="SALDÃO COAGRO">Saldão Coagro</option>
                   {appMode === 'PET' ? (
                     <option value="OFERTA PET">Oferta Pet</option>
                   ) : (
@@ -614,4 +622,3 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
     </div>
   );
 };
-

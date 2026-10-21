@@ -7,21 +7,21 @@ import type { LogoVariant } from '../assets/coagroLogos';
 export type ScopeId = 'AGRO' | 'PET' | (string & {});
 
 /**
- * Escopos com implementaÃ§Ã£o de marca completa (paleta prÃ³pria + regras de
- * layout). Adicionar um item aqui Ã© o primeiro passo para suportar uma marca
+ * Escopos com implementação de marca completa (paleta própria + regras de
+ * layout). Adicionar um item aqui é o primeiro passo para suportar uma marca
  * nova de ponta a ponta.
  */
 export type BrandScope = 'AGRO' | 'PET';
 
-/** Escopo assumido quando nada Ã© informado ou o valor Ã© desconhecido. */
+/** Escopo assumido quando nada é informado ou o valor é desconhecido. */
 export const DEFAULT_SCOPE: BrandScope = 'AGRO';
 
 /**
  * Normaliza qualquer entrada de escopo para um `BrandScope` conhecido.
  *
- * Aceita variaÃ§Ãµes de caixa/ espaÃ§os ('agro', 'PET ', 'Coagro Pet' nÃ£o Ã©
- * reconhecido de propÃ³sito â€” apenas o id). Valores desconhecidos caem em
- * `DEFAULT_SCOPE` de forma silenciosa e previsÃ­vel.
+ * Aceita variações de caixa/ espaços ('agro', 'PET ', 'Coagro Pet' não é
+ * reconhecido de propósito â€” apenas o id). Valores desconhecidos caem em
+ * `DEFAULT_SCOPE` de forma silenciosa e previsível.
  */
 export function normalizeScopeId(scopeId?: ScopeId | null): BrandScope {
   if (!scopeId) return DEFAULT_SCOPE;
@@ -31,13 +31,13 @@ export function normalizeScopeId(scopeId?: ScopeId | null): BrandScope {
   return DEFAULT_SCOPE;
 }
 
-/** Atalho de leitura: o escopo informado Ã© o Pet? */
+/** Atalho de leitura: o escopo informado é o Pet? */
 export function isPetScope(scopeId?: ScopeId | null): boolean {
   return normalizeScopeId(scopeId) === 'PET';
 }
 
 /**
- * Marcas que possuem logotipo prÃ³prio (componente dedicado, nÃ£o uma variante
+ * Marcas que possuem logotipo próprio (componente dedicado, não uma variante
  * da logo Coagro Agro). Quando `true`, o `ArtHeader` ignora `logoVariant` e
  * renderiza a logo da marca.
  */
@@ -55,9 +55,9 @@ export interface BrandPalette {
 /**
  * Paleta de texto por escopo.
  *
- * NOTA (Fase 4): as cores ainda estÃ£o literais aqui em vez de virem de
- * `tenant.config.json`. Centralizar nesta funÃ§Ã£o garante que a migraÃ§Ã£o para
- * configuraÃ§Ã£o por marca aconteÃ§a em UM lugar, sem tocar nos templates.
+ * NOTA (Fase 4): as cores ainda estão literais aqui em vez de virem de
+ * `tenant.config.json`. Centralizar nesta função garante que a migração para
+ * configuração por marca aconteça em UM lugar, sem tocar nos templates.
  */
 export function getPalette(scopeId: ScopeId, isLight: boolean = false): BrandPalette {
   if (isPetScope(scopeId)) {
@@ -80,11 +80,11 @@ export function getPalette(scopeId: ScopeId, isLight: boolean = false): BrandPal
 /**
  * Resolve a variante da logo **da marca Coagro Agro**.
  *
- * Regra explÃ­cita de precedÃªncia:
+ * Regra explícita de precedência:
  *   1. variante escolhida manualmente pelo operador;
  *   2. contraste do fundo (claro â†’ logo azul, escuro â†’ logo branca).
  *
- * Marcas com logotipo prÃ³prio (ver `brandHasOwnLogo`) ignoram este valor â€” o
+ * Marcas com logotipo próprio (ver `brandHasOwnLogo`) ignoram este valor â€” o
  * `ArtHeader` usa o componente da marca.
  */
 export function resolveLogoVariant(
@@ -92,7 +92,7 @@ export function resolveLogoVariant(
   explicit?: LogoVariant
 ): LogoVariant {
   // REGRA DE SEGURANÃ‡A VISUAL & CONTRASTE (Grupo Coagro):
-  // 1. Em fundo claro (clean-branco), NUNCA permitir logo branca (fica invisÃ­vel).
+  // 1. Em fundo claro (clean-branco), NUNCA permitir logo branca (fica invisível).
   if (isLight) {
     if (explicit === 'h-mono-branca' || explicit === 'h-branca') return 'h-azul';
     if (explicit === 'v-mono-branca' || explicit === 'v-branca') return 'v-azul';
@@ -107,7 +107,7 @@ export function resolveLogoVariant(
 }
 
 /**
- * Fundo radial padrÃ£o por escopo/tema, usado quando nÃ£o hÃ¡ foto de fundo.
+ * Fundo radial padrão por escopo/tema, usado quando não há foto de fundo.
  * Centralizado aqui para que a Fase 4 possa trocar por cores de tenant.
  */
 export function resolveBackgroundStyle(

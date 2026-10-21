@@ -11,8 +11,12 @@ function createWindow() {
     height: 800,
     title: "Gerador de Cartaz Coagro",
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
+      // endurecimento: o renderer não usa API do Node (verificado por grep em src/)
+      // e carrega conteúdo remoto (fundos) — sem isso, qualquer XSS = RCE na loja.
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
     },
     autoHideMenuBar: true,
   });

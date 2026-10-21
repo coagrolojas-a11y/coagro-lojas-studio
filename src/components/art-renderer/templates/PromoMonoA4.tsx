@@ -8,6 +8,7 @@ export interface PromoMonoA4Props {
   codigo?: string;
   headerText?: string;
   discountBadge?: string;
+  validityText?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export const PromoMonoA4: React.FC<PromoMonoA4Props> = ({
   codigo,
   headerText = 'OFERTA',
   discountBadge,
+  validityText,
 }) => {
   const priceParts = currentPrice.replace('R$', '').trim().split(',');
   const mainPrice = priceParts[0] || '0';
@@ -126,9 +128,11 @@ export const PromoMonoA4: React.FC<PromoMonoA4Props> = ({
       {/* ZONA 4: RODAPÉ COM LOGO COAGRO VERTICAL (CASINHA EM CIMA) */}
       <div className="w-full h-[14cqw] flex items-center justify-between border-t-[0.6cqw] border-black px-[5cqw] shrink-0 bg-white z-10">
         <div className="flex flex-col text-left">
-          <p className="font-exo2 font-black uppercase tracking-wider text-black" style={{ fontSize: '3.6cqw' }}>
-            APROVEITE! ÚLTIMAS UNIDADES!
-          </p>
+          {validityText && (
+            <p className="font-exo2 font-bold text-black leading-tight" style={{ fontSize: '3.1cqw' }}>
+              {validityText}
+            </p>
+          )}
           {codigo && (
             <div className="mt-[0.2cqw] font-mono font-bold text-black" style={{ fontSize: '2.5cqw' }}>
               CÓD: {codigo}

@@ -116,15 +116,22 @@ function maskNonPriceSegments(text: string): string {
   const modelCodeRegex = /\b[a-z]{1,4}[-_]?\d{1,4}[a-z]?\b/gi;
   masked = masked.replace(modelCodeRegex, (match) => ' '.repeat(match.length));
 
-  // 3. Prefixos explícitos de modelo (ex: modelo 2024, mod 30, ref 15)
+  // 3. Relações/dosagens de fertilizante e químicos (ex: 04-14-08, 20-00-20).
+  // DEFEITO CORRIGIDO: sem esta máscara, "Fertilizante 04-14-08 saco 50kg"
+  // gerava valorDe "14,00" / valorPor "8,00" — os dígitos da dosagem NPK viravam
+  // preço promocional na arte.
+  const npkRegex = /\b\d{1,2}\s*[-/]\s*\d{1,2}\s*[-/]\s*\d{1,2}\b/g;
+  masked = masked.replace(npkRegex, (match) => ' '.repeat(match.length));
+
+  // 4. Prefixos explícitos de modelo (ex: modelo 2024, mod 30, ref 15)
   const modelPrefixRegex = /\b(?:modelo|mod|ref|tipo|c[oó]digo|vers[aã]o|s[eé]rie)\s*[:#-]?\s*\d+\b/gi;
   masked = masked.replace(modelPrefixRegex, (match) => ' '.repeat(match.length));
 
-  // 4. Anos de fabricação ou safras (ex: ano 2024, 2023/2024, safra 24)
+  // 5. Anos de fabricação ou safras (ex: ano 2024, 2023/2024, safra 24)
   const yearRegex = /\b(?:ano|fabrica[cç][aã]o|safra)\s*[:#-]?\s*(?:19|20)\d{2}\b/gi;
   masked = masked.replace(yearRegex, (match) => ' '.repeat(match.length));
 
-  // 5. Multiplicadores de parcelamento (ex: "10x", "10x de", "12 x sem juros").
+  // 6. Multiplicadores de parcelamento (ex: "10x", "10x de", "12 x sem juros").
   //
   // DEFEITO CORRIGIDO: o multiplicador NÃO é preço. Sem esta máscara, em
   // "10x de 180" o parser descartava corretamente o VALOR da parcela (180, via
@@ -230,24 +237,35 @@ export function extractPriceFromText(text?: string | null): ExtractedPriceInfo {
     let deScore = 0;
     let porScore = 0;
 
-    // Marcadores Semânticos de Preço Original ("DE"):
-    // Forte: "era", "custava", "antes", "de tabela", "tabela", "original"
-    if (/\b(?:era|custava|antes|de\s+tabela|tabela|original|pre[çc]o\s+antigo|pre[çc]o\s+normal)\b/.test(windowBefore)) {
-      deScore += 15;
-    } else if (/\bde\b\s*[:]?\s*(?:r\$)?\s*$/.test(windowBefore)) {
-      deScore += 10;
-    } else if (/\bde\b/.test(windowBefore)) {
-      deScore += 5;
-    }
+    // DEFEITO CORRIGIDO — marcador IMEDIATO tem precedência absoluta.
+    // Em "Oferta: de R$ 1.992,00 por R$ 1.575,00" a palavra "oferta" ficava a
+    // ~20 caracteres do primeiro valor e somava +15 no score "POR", enquanto o
+    // "de R$" logo à esquerda somava só +10 — o primeiro valor era classificado
+    // como POR e a arte saía com R$ 1.992,00 como preço promocional (26% acima
+    // do real). O marcador colado no número é inambíguo e decide sozinho.
+    const immediateDe = /\bde\b\s*[:]?\s*(?:r\$)?\s*$/.test(windowBefore);
+    const immediatePor = /\bpor\b\s*[:]?\s*(?:r\$)?\s*$/.test(windowBefore);
 
-    // Marcadores Semânticos de Preço Promocional ("POR"):
-    // Forte: "sai por", "agora", "apenas", "promoção", "promocional", "à vista", "no pix", "pague"
-    if (/\b(?:sai\s+por|agora|apenas|promo[çc][ãa]o|promocional|oferta|[aà]\s*vista|no\s+pix|pague\s+apenas|desconto)\b/.test(windowBefore)) {
-      porScore += 15;
-    } else if (/\bpor\b\s*[:]?\s*(?:r\$)?\s*$/.test(windowBefore)) {
-      porScore += 10;
-    } else if (/\bpor\b/.test(windowBefore)) {
-      porScore += 5;
+    if (immediateDe) {
+      deScore += 20;
+    } else if (immediatePor) {
+      porScore += 20;
+    } else {
+      // Marcadores Semânticos de Preço Original ("DE"):
+      // Forte: "era", "custava", "antes", "de tabela", "tabela", "original"
+      if (/\b(?:era|custava|antes|de\s+tabela|tabela|original|pre[çc]o\s+antigo|pre[çc]o\s+normal)\b/.test(windowBefore)) {
+        deScore += 15;
+      } else if (/\bde\b/.test(windowBefore)) {
+        deScore += 5;
+      }
+
+      // Marcadores Semânticos de Preço Promocional ("POR"):
+      // Forte: "sai por", "agora", "apenas", "promoção", "promocional", "à vista", "no pix", "pague"
+      if (/\b(?:sai\s+por|agora|apenas|promo[çc][ãa]o|promocional|oferta|[aà]\s*vista|no\s+pix|pague\s+apenas|desconto)\b/.test(windowBefore)) {
+        porScore += 15;
+      } else if (/\bpor\b/.test(windowBefore)) {
+        porScore += 5;
+      }
     }
 
     // Marcadores no sufixo pós-número (ex: "1575 à vista", "1992 de tabela")
@@ -282,24 +300,31 @@ export function extractPriceFromText(text?: string | null): ExtractedPriceInfo {
 
   // 4. Resolução de Papéis ('DE' vs 'POR'):
   if (candidates.length >= 2) {
-    let finalPor = candidates.find((c) => c.semanticRole === 'POR');
-    let finalDe = candidates.find((c) => c.semanticRole === 'DE');
-
+    const explicitPor = candidates.find((c) => c.semanticRole === 'POR');
+    const explicitDe = candidates.find((c) => c.semanticRole === 'DE');
     const sorted = [...candidates].sort((a, b) => b.floatValue - a.floatValue);
-    
-    // Se achou um mas não o outro, tenta parear com o valor mais lógico
+
+    let finalPor = explicitPor;
+    let finalDe = explicitDe;
+
+    // Pareamento auxiliar: só quando um lado é explícito e existe um candidato
+    // verdadeiramente compatível. DEFEITO CORRIGIDO: antes, `finalDe = sorted[0]`
+    // podia apontar para o MESMO candidato de `finalPor` (ou para um número de
+    // modelo como "XP 20"), e o par resultante virava um preço inventado.
     if (!finalDe && finalPor) {
-      finalDe = sorted.find((c) => c.floatValue > finalPor!.floatValue);
+      finalDe = sorted.find((c) => c !== finalPor && c.floatValue > finalPor!.floatValue);
     }
     if (!finalPor && finalDe) {
-      finalPor = sorted.find((c) => c.floatValue < finalDe!.floatValue);
+      finalPor = sorted.find((c) => c !== finalDe && c.floatValue < finalDe!.floatValue);
     }
 
-    // Se não achou nenhum dos dois de forma clara, assume os 2 maiores distintos
-    if (!finalDe) finalDe = sorted[0];
-    if (!finalPor) finalPor = sorted.find((c) => c.floatValue !== finalDe!.floatValue) || sorted[1];
+    // Nenhum marcador semântico: assume os 2 maiores distintos (comportamento histórico).
+    if (!finalDe && !finalPor) {
+      finalDe = sorted[0];
+      finalPor = sorted.find((c) => c.floatValue !== finalDe!.floatValue) || sorted[1];
+    }
 
-    if (finalDe && finalPor && finalDe.floatValue !== finalPor.floatValue) {
+    if (finalDe && finalPor && finalDe !== finalPor && finalDe.floatValue !== finalPor.floatValue) {
       // Regra de Coerência Comercial:
       // O maior valor é SEMPRE o preço original ("DE") e o menor é SEMPRE o promocional ("POR")
       const isHigherDe = finalDe.floatValue > finalPor.floatValue;
@@ -315,9 +340,16 @@ export function extractPriceFromText(text?: string | null): ExtractedPriceInfo {
     }
   }
 
-  // Cenário C: Apenas um preço comercial identificado
-  if (candidates.length >= 1) {
-    const single = candidates[0];
+  // Cenário C: Apenas um preço comercial identificado.
+  // DEFEITO CORRIGIDO: usava `candidates[0]` (o primeiro número na ORDEM DO TEXTO),
+  // então "Pulverizador Jacto XP 20 de 20 litros por R$ 1575,00" devolvia
+  // valorPor "20,00" — o "20" do modelo, e não o preço. Agora o candidato com
+  // papel semântico tem prioridade sobre a posição no texto.
+  const single =
+    candidates.find((c) => c.semanticRole === 'POR') ||
+    candidates.find((c) => c.semanticRole === 'DE') ||
+    candidates[0];
+  if (single) {
     return {
       hasPrice: true,
       valorDe: undefined,

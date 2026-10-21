@@ -1,0 +1,565 @@
+Kaio, tudo bem! Analisei as duas telas do Coagro Lojas Studio: a de criação de artes para redes sociais (Stories) e a de cartazes para impressão A4.
+
+Minha avaliação inicial é que vocês estão construindo algo com bastante potencial: uma ferramenta interna de marketing que pode padronizar a comunicação das lojas, acelerar a criação de peças e reduzir erros comerciais e de conformidade.
+
+O próximo salto não precisa ser transformar a aplicação em um sistema mais complexo. Eu seguiria exatamente a direção que você propôs: manter a interface limpa, automatizar as regras de negócio e deixar a maior parte das decisões de segurança a cargo do próprio sistema.
+
+## 1. Minha avaliação do MVP
+
+# 8,5
+
+Visual
+
+Identidade visual e organização
+
+A interface é limpa, com boa hierarquia de informações, cores consistentes com a Coagro e uma separação clara entre formulário e prévia da arte. O usuário consegue entender rapidamente o que está editando.
+
+# 9,0
+
+Usabilidade
+
+Fluxo de criação
+
+A pré-visualização em tempo real, os campos objetivos, os modelos de arte e as opções de exportação são boas decisões. Isso tende a facilitar a adoção por pessoas de diferentes níveis de experiência em design.
+
+# 8,0
+
+Produtividade
+
+Potencial de automação
+
+O preenchimento manual já resolve uma parte do trabalho. O maior ganho agora está em automatizar validade de ofertas, alertas legais, cálculos comerciais, padrões visuais e prevenção de erros antes de baixar ou imprimir.
+
+# 6,5
+
+Conformidade
+
+Segurança comercial e regulatória
+
+Pelas telas, ainda não há um fluxo visível para controlar a vigência da oferta, identificar produtos sujeitos a regras específicas ou impedir a exportação de uma peça incompleta. Isso não significa que essas funções não existam no código; significa que elas não estão evidentes na interface apresentada.
+
+Notas estimadas a partir das telas enviadas, não de uma auditoria completa do código, da aplicação publicada ou do banco de dados.
+
+Minha nota geral para o MVP visual e funcional apresentado: 8,0/10. Eu não refaria a interface. Evoluiria o que já existe, principalmente nas regras de negócio e na automação.
+
+## 2. Antes de implementar: as regras que realmente importam
+
+Há uma distinção importante para o seu projeto: nem toda peça agropecuária exige o mesmo aviso, e colocar um texto genérico em letras pequenas não garante conformidade.
+
+Consultei a legislação e as orientações oficiais disponíveis. Estas são as bases que eu usaria para orientar o desenvolvimento:
+
+- Ofertas do varejo: o Código de Defesa do Consumidor exige informações corretas, claras, precisas e ostensivas, incluindo preço, características, prazos de validade e riscos pertinentes. A aplicação deve sempre permitir informar a vigência da promoção, mas não deve afirmar que toda oferta precisa, indistintamente, de um campo de data final por uma única regra federal.&#x20;
+
+  [image](https://www.google.com/s2/favicons?domain=https://planalto.gov.br\&sz=32)
+
+  Planalto
+
+- Defensivos agrícolas e produtos sujeitos a receituário: a publicidade tem requisitos específicos de advertência, referência à exigência de receita quando aplicável, leitura do rótulo e da bula, prevenção de riscos à saúde humana, aos animais e ao meio ambiente. Há também restrições à representação de práticas perigosas.&#x20;
+
+  [image](https://www.google.com/s2/favicons?domain=https://www.planalto.gov.br\&sz=32)
+
+  Planalto
+
+  +1
+
+- Produtos veterinários e medicamentos: não devem ser tratados como uma única categoria. Há regulamentação específica do MAPA para produtos veterinários e regras próprias para publicidade profissional veterinária.&#x20;
+
+  [image](https://www.google.com/s2/favicons?domain=https://www.gov.br\&sz=32)
+
+  Ministério da Agricultura e Pecuária
+
+  +1
+
+
+
+Um cuidado adicional: a Lei nº 14.785/2023 é a nova Lei de Agrotóxicos, e a Lei nº 15.070/2024 trata dos bioinsumos. Por isso, eu não copiaria automaticamente textos de modelos antigos nem usaria um único aviso para todos os produtos.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.planalto.gov.br\&sz=32)
+
+Planalto
+
++1
+
+
+
+Minha recomendação é desenvolver um motor de conformidade publicitária, com regras configuráveis e textos previamente aprovados, em vez de simplesmente adicionar mais caixas ao formulário.
+
+## 3. Prompt principal para implementar as melhorias
+
+Preparei um prompt para você colar no seu agente de desenvolvimento. Ele pede que o agente primeiro entenda a estrutura existente, preserve o MVP e implemente as melhorias sem reconstruir a aplicação do zero.
+
+# EVOLUÇÃO DO COAGRO LOJAS STUDIO — CONFORMIDADE, SEGURANÇA COMERCIAL E EXPERIÊNCIA DO USUÁRIO
+
+## 1. CONTEXTO DO PROJETO
+
+Estamos desenvolvendo o Coagro Lojas Studio, uma aplicação interna de marketing do Grupo Coagro, já funcional em sua versão MVP.
+
+A aplicação permite criar peças publicitárias para dois contextos principais:
+
+1. Redes sociais, especialmente Stories e Status, no formato vertical 9:16.
+2. Cartazes de ofertas para impressão, com formatos A4 inteiro, meio A5 e 4 cartazes por folha.
+
+A ferramenta possui identidade visual da Coagro, seleção de marcas Agro e Pet, formulário de criação de artes, informações de produtos, preços, desconto percentual, imagem do produto, descrição, diferenciais, chamada para ação, pré-visualização e exportação de arquivos.
+
+O sistema já resolve o fluxo básico de criação. O objetivo agora é torná-lo mais seguro, inteligente e padronizado, especialmente em relação à publicidade de varejo, produtos agropecuários, defensivos agrícolas, ofertas promocionais e informações obrigatórias.
+
+## 2. DIRETRIZ PRINCIPAL
+
+Antes de alterar qualquer coisa, analise o código existente, a arquitetura, os componentes, os estilos, as dependências, as rotas, a lógica de geração das imagens, a exportação de PNG/PDF e a integração com o Firebase, caso esteja presente.
+
+Não recrie a aplicação do zero.
+
+Não substitua tecnologias existentes sem uma justificativa técnica concreta.
+
+Preserve as funcionalidades já operacionais e faça alterações incrementais, priorizando compatibilidade, estabilidade e facilidade de manutenção.
+
+A interface atual deve continuar limpa, objetiva e profissional. Não transforme o formulário em um painel burocrático repleto de opções.
+
+O princípio central deve ser:
+
+**O usuário informa os dados comerciais e identifica o tipo de produto. O sistema aplica automaticamente as regras pertinentes, apresenta os avisos necessários e impede a exportação quando houver pendências críticas de conformidade.**
+
+A ferramenta deve continuar acessível a colaboradores que não possuem conhecimento jurídico, regulatório ou avançado de design.
+
+## 3. CADASTRO E VALIDADE DAS PROMOÇÕES
+
+Implementar um controle de vigência promocional integrado ao formulário atual.
+
+### Campos necessários
+
+- Data de início da promoção.
+- Data de encerramento da promoção.
+- Opcionalmente, horário de início e encerramento, quando necessário.
+- Abrangência da oferta: todas as lojas, lojas selecionadas ou unidades específicas.
+- Condições comerciais relevantes, quando existirem.
+- Identificação da campanha, para permitir reutilização dos mesmos dados em diferentes formatos.
+
+### Regras de negócio
+
+1. Utilizar a data atual como referência para preencher a data inicial, sem impedir a edição manual.
+2. Permitir informar a data final da oferta de forma simples.
+3. Não permitir uma data final anterior à data inicial.
+4. Caso a oferta seja identificada como promocional, apresentar um lembrete discreto para informar sua vigência.
+5. Permitir que o usuário marque uma opção de campanha sem data final definida, somente quando isso for comercialmente adequado e permitido pelas regras aplicáveis.
+6. Quando uma regra específica exigir informação de prazo ou outra condição, não permitir que a opção de ausência de data a contorne.
+7. Gerar automaticamente um texto de validade na arte, por exemplo: "Oferta válida de 20/10/2026 a 25/10/2026".
+8. Oferecer uma configuração para utilizar a frase "Enquanto durarem os estoques" quando verdadeira e adequada, sem utilizá-la como substituta automática da vigência ou de outras informações exigíveis.
+9. Não inventar estoque disponível, exclusividade, quantidade de unidades ou condições comerciais.
+10. Se a oferta for restrita a determinadas lojas, incluir essa informação na arte ou no rodapé.
+11. Se a promoção for por tempo limitado, destacar a validade de maneira legível.
+12. Considerar o fuso horário de Brasília na interpretação das datas, sem deslocamentos causados por UTC.
+13. Quando a data final passar, marcar a oferta como vencida, impedir a reutilização inadvertida e solicitar atualização antes de uma nova exportação.
+14. A validade deve ser aplicada tanto às peças de redes sociais quanto aos cartazes A4.
+
+A data da oferta deve ser um dado estruturado, e não um texto digitado livremente que o usuário possa esquecer de atualizar.
+
+## 4. CLASSIFICAÇÃO REGULATÓRIA DOS PRODUTOS
+
+Adicionar um mecanismo simples de classificação do produto.
+
+Não é necessário criar uma tela grande nem solicitar diversos campos novos para todos os produtos.
+
+O formulário deve conter uma opção compacta chamada "Tipo de produto", com as categorias abaixo:
+
+- Produto de varejo comum.
+- Ração e alimentação animal.
+- Fertilizantes e corretivos.
+- Sementes e mudas.
+- Defensivo agrícola ou produto sujeito a controle específico.
+- Bioinsumo.
+- Produto veterinário.
+- Medicamento veterinário.
+- Produto sujeito a receituário ou controle especial.
+- Outro produto agropecuário.
+- Não identificado / necessita de validação.
+
+As categorias devem ser configuráveis e podem ser refinadas conforme a legislação aplicável e o catálogo comercial da Coagro.
+
+### Regras de classificação
+
+1. Se houver cadastro de produtos no Firebase, aproveitar esse cadastro para preencher automaticamente a classificação.
+2. Se o usuário digitar um produto novo, permitir classificação manual.
+3. A IA poderá sugerir uma categoria a partir do nome, fabricante, descrição e dados cadastrados, mas não poderá declarar que um produto está legalmente classificado apenas com base no nome.
+4. Produtos ambíguos devem ser marcados como "Necessita de validação".
+5. Não classificar automaticamente todo fertilizante, ração, semente ou produto agropecuário como defensivo agrícola.
+6. A classificação deve distinguir os produtos sujeitos a receituário daqueles para os quais essa exigência não se aplica.
+7. Quando houver dúvida sobre o enquadramento legal, solicitar confirmação do responsável autorizado.
+8. Não permitir que uma classificação pendente seja ignorada apenas para liberar a exportação.
+9. Registrar a categoria aplicada à peça e a versão da regra utilizada.
+
+## 5. AVISOS DE CONFORMIDADE PARA DEFENSIVOS AGRÍCOLAS
+
+Esta é uma das funcionalidades prioritárias.
+
+Criar um módulo de avisos legais específicos para produtos identificados como defensivos agrícolas ou produtos sujeitos às exigências correspondentes.
+
+Não utilizar um único texto genérico para todos os produtos.
+
+### Comportamento esperado
+
+Quando o usuário selecionar uma categoria sujeita a advertências obrigatórias, o sistema deverá:
+
+1. Identificar quais regras são aplicáveis ao produto.
+2. Recuperar os textos previamente aprovados para essa categoria.
+3. Inserir automaticamente os avisos pertinentes na composição da arte.
+4. Impedir a exportação caso falte alguma informação obrigatória ou validação crítica.
+5. Informar claramente qual pendência precisa ser corrigida.
+6. Não obrigar o usuário a digitar manualmente um aviso que já exista em uma biblioteca de textos aprovados.
+
+### Tipos de informações que o módulo deve contemplar
+
+Conforme o enquadramento e as exigências aplicáveis:
+
+- Referência expressa à necessidade de receita agronômica, quando o produto for comercializável mediante prescrição.
+- Advertência clara sobre os riscos à saúde humana, aos animais e ao meio ambiente.
+- Orientação para leitura atenta do rótulo e da bula antes da utilização.
+- Informação sobre destinação correta de embalagens vazias e restos de produtos, quando exigida.
+- Outras advertências ou restrições específicas do produto e da legislação aplicável.
+
+### Exemplo de texto-base para configuração
+
+"ANTES DE USAR, LEIA O RÓTULO E A BULA. Utilize os produtos conforme as recomendações técnicas e a legislação aplicável. Produto sujeito a receituário agronômico quando exigido."
+
+Este exemplo é apenas um texto inicial para análise. Não deve ser considerado uma advertência legal universal nem substituir os dizeres exigidos para cada produto.
+
+O sistema deverá utilizar modelos aprovados pelo responsável regulatório da empresa, com possibilidade de atualização sem alteração do código-fonte.
+
+### Proibição de conformidade apenas aparente
+
+Não reduzir os avisos a uma linha praticamente ilegível no rodapé para acomodar a arte.
+
+A advertência deve ser efetivamente legível e ter destaque compatível com as exigências aplicáveis ao produto e ao meio de divulgação.
+
+Se a arte não comportar o texto obrigatório, o sistema deverá adaptar o layout ou impedir a exportação até que o problema seja resolvido.
+
+Não permitir que a remoção manual de um aviso obrigatório seja tratada como uma simples preferência visual.
+
+## 6. BIBLIOTECA CENTRAL DE TEXTOS E REGRAS
+
+Criar uma estrutura centralizada para armazenar os avisos, os modelos de rodapé e as regras de conformidade.
+
+Cada regra deve possuir:
+
+- Identificador único.
+- Nome e descrição.
+- Categoria ou categorias de produtos às quais se aplica.
+- Condição que ativa a regra.
+- Texto aprovado.
+- Formatos em que deve aparecer: Stories, Status, cartaz A4, A5 e outros suportados.
+- Indicação de obrigatoriedade.
+- Nível de criticidade.
+- Data de início da vigência da regra.
+- Data de término, quando aplicável.
+- Fonte legal ou regulatória.
+- Versão da regra.
+- Responsável pela aprovação.
+- Situação: ativa, inativa, em revisão ou expirada.
+
+A biblioteca deverá separar regras obrigatórias de recomendações internas de marketing.
+
+Não tratar recomendações comerciais como se fossem obrigações legais.
+
+Não alterar automaticamente textos legais com IA generativa. A IA pode auxiliar na organização e identificação de pendências, mas os textos oficiais devem ser mantidos conforme a versão aprovada.
+
+Caso exista um painel administrativo, integrá-lo à estrutura existente. Se não existir, começar com uma biblioteca configurável de forma centralizada e segura, evitando criar uma área administrativa desnecessariamente complexa.
+
+## 7. RODAPÉ INTELIGENTE PARA AS ARTES
+
+Implementar um rodapé dinâmico que se adapte ao tipo de peça, ao formato de saída e às regras aplicáveis.
+
+### Para ofertas comuns
+
+Exibir, conforme os dados da campanha:
+
+- Período da oferta.
+- Lojas participantes ou abrangência.
+- Condições comerciais relevantes.
+- Indicação de estoque limitado, somente quando verdadeira.
+- Identificação da Coagro e demais informações institucionais já utilizadas.
+
+### Para produtos agropecuários regulamentados
+
+Acrescentar automaticamente os avisos específicos aplicáveis.
+
+### Regras visuais
+
+1. Não ocupar espaço desnecessário na arte.
+2. Utilizar tipografia legível e contraste suficiente.
+3. Evitar excesso de cores, caixas, ícones e bordas.
+4. Manter a identidade visual atual da Coagro.
+5. Respeitar as dimensões mínimas de legibilidade definidas para cada formato.
+6. Não utilizar o mesmo tamanho de fonte para todos os avisos, independentemente do conteúdo e da exigência.
+7. Permitir que a composição se ajuste à quantidade de texto.
+8. Não cortar, sobrepor ou ocultar informações obrigatórias.
+9. Não posicionar informações críticas em áreas que possam ser cortadas na impressão.
+10. Não presumir que um aviso minúsculo seja suficiente para cumprir a legislação.
+
+O rodapé deverá ser um componente reutilizável, compartilhado entre a geração de Stories e os cartazes para impressão.
+
+## 8. REGRAS PARA PREÇOS E DESCONTOS
+
+Revisar a lógica comercial existente para impedir erros matemáticos e informações inconsistentes.
+
+### Regras obrigatórias
+
+1. O preço original e o preço promocional devem ser numéricos, positivos e válidos.
+2. O preço promocional não pode ser maior que o preço original quando a arte apresenta a oferta como desconto.
+3. Se o preço promocional for igual ao preço original, não exibir desconto.
+4. O desconto percentual deve ser calculado automaticamente a partir dos dois preços.
+5. Arredondar o percentual de acordo com uma regra consistente e não utilizá-lo para alterar os valores comerciais.
+6. Exibir os valores em reais no padrão brasileiro, como R$ 239,90.
+7. Preservar a precisão monetária nos cálculos, evitando erros de ponto flutuante.
+8. Quando não existir preço original, permitir a criação de uma oferta sem desconto percentual, desde que a comunicação não apresente uma redução de preço não comprovada.
+9. Não gerar um preço original fictício.
+10. Se o usuário informar manualmente um desconto, recalcular e comparar com o desconto real.
+11. Se houver divergência, apresentar um aviso e corrigir automaticamente o percentual exibido.
+12. Caso a oferta dependa de condições especiais, como quantidade mínima, pagamento específico ou compra de vários itens, essas condições devem ser informadas de maneira clara e legível.
+13. Quando houver preço por unidade de medida, peso ou volume, preservar a unidade e evitar que a apresentação cause interpretação equivocada.
+
+### Exemplo
+
+Preço original: R$ 58,00.
+
+Preço promocional: R$ 44,00.
+
+Desconto calculado: 24,14%.
+
+A interface poderá arredondar a chamada para 24%, mas o preço promocional continuará sendo R$ 44,00.
+
+Não apresentar descontos, vantagens ou comparações de preço sem dados que os sustentem.
+
+## 9. CHECKLIST DE VALIDAÇÃO AUTOMÁTICA
+
+Antes de exportar uma peça, executar uma validação silenciosa e apresentar somente as pendências relevantes.
+
+### Validações gerais
+
+- Nome do produto preenchido.
+- Preço válido, quando aplicável.
+- Desconto correto, quando anunciado.
+- Data e condições da promoção verificadas.
+- Imagem carregada e posicionada corretamente.
+- Textos dentro dos limites da arte.
+- Nenhuma informação crítica cortada.
+- Nenhuma sobreposição indevida.
+- Logo sem distorção.
+- Avisos aplicáveis inseridos.
+- Categoria do produto definida.
+- Formato de saída válido.
+
+### Classificação dos problemas
+
+**Bloqueante:** existe uma pendência regulatória crítica, um dado comercial inconsistente ou uma falha que compromete a integridade da peça. A exportação deve ser impedida.
+
+**Atenção:** há um ponto que precisa ser revisado, mas que não representa necessariamente uma violação legal. Permitir continuar quando a regra aplicável autorizar, registrando a decisão quando pertinente.
+
+**Informativo:** sugestão de melhoria de design, legibilidade ou desempenho comercial. Não bloquear a exportação.
+
+O sistema não deve classificar automaticamente toda ausência de informação como infração legal. A criticidade depende da categoria, da condição da oferta e da regra aplicável.
+
+Apresentar o resultado de forma discreta, com mensagens curtas e uma ação clara para corrigir cada problema.
+
+## 10. VALIDAÇÃO FINAL DA ARTE
+
+Adicionar um indicador discreto próximo aos botões de exportação.
+
+Estados sugeridos:
+
+- Pronta para exportação.
+- Atenção: revisar informações.
+- Exportação bloqueada: corrigir pendências.
+
+O indicador deve ser derivado das validações efetivamente realizadas. Não deve representar um selo genérico de "100% legal" ou uma garantia absoluta de conformidade.
+
+Ao clicar no indicador, abrir um painel compacto com os problemas identificados, sem sobrecarregar o formulário principal.
+
+Se houver bloqueio, destacar apenas as correções necessárias.
+
+Após a correção, executar novamente as validações.
+
+## 11. MELHORIAS VISUAIS E DE USABILIDADE
+
+Preservar a identidade atual, a distribuição em duas colunas e a pré-visualização em tempo real.
+
+Implementar somente melhorias que reduzam erros ou economizem tempo.
+
+### Melhorias prioritárias
+
+1. Agrupar informações de validade, abrangência e condições em uma seção compacta de "Oferta e vigência".
+2. Exibir o tipo de produto em um campo discreto.
+3. Mostrar opções adicionais de conformidade somente quando forem pertinentes.
+4. Reaproveitar os mesmos dados entre Stories e cartazes A4.
+5. Atualizar automaticamente a prévia ao mudar a validade ou os avisos.
+6. Ajustar a altura do rodapé conforme o conteúdo necessário.
+7. Adicionar uma opção para alternar a visualização entre tamanho real e prévia ampliada.
+8. Verificar legibilidade em tela pequena e em impressão.
+9. Preservar as cores, os botões, os cartões e os padrões visuais existentes.
+10. Não adicionar menus, abas ou etapas que não tenham utilidade concreta.
+
+### Experiência desejada
+
+O fluxo ideal é:
+
+Preencher os dados do produto → selecionar sua categoria → informar a vigência da oferta → visualizar a arte → corrigir eventuais pendências → exportar.
+
+A maior parte dos avisos e dos cálculos deverá acontecer automaticamente.
+
+## 12. REGRAS DE SEGURANÇA E INTEGRIDADE DOS DADOS
+
+Não tratar validações realizadas apenas no navegador como uma barreira de segurança suficiente.
+
+Se o projeto utilizar Firebase:
+
+1. Analisar as regras de segurança existentes.
+2. Verificar autenticação e autorização de usuários, caso implementadas.
+3. Restringir alterações na biblioteca de regras e nos textos aprovados a usuários autorizados.
+4. Não permitir que um usuário comum desative ou modifique regras obrigatórias.
+5. Validar dados críticos também no servidor ou em uma camada confiável, conforme a arquitetura existente.
+6. Não armazenar segredos, chaves privadas ou credenciais privilegiadas no código do cliente.
+7. Não ampliar permissões do banco de dados para facilitar a implementação.
+8. Registrar alterações nas regras, aprovações e decisões de exceção.
+9. Preservar a integridade dos dados das campanhas.
+10. Não expor dados comerciais internos ou informações de usuários desnecessariamente.
+
+Se a aplicação ainda não tiver autenticação, não introduzir um sistema complexo sem necessidade. Entretanto, as funções administrativas e as alterações de regras não devem ficar desprotegidas em uma aplicação utilizada por vários colaboradores.
+
+## 13. EXPORTAÇÃO E IMPRESSÃO
+
+Revisar os processos de exportação em PNG, PDF e impressão.
+
+A arte exportada deve conter os mesmos dados comerciais, os avisos e a validade apresentados na prévia.
+
+Garantir que:
+
+- O rodapé não seja cortado.
+- As fontes sejam renderizadas corretamente.
+- Os preços mantenham sua formatação.
+- O conteúdo respeite o formato selecionado.
+- A qualidade seja adequada à impressão.
+- As dimensões e proporções sejam preservadas.
+- Não existam elementos fora da área útil.
+- A exportação respeite o resultado da validação final.
+
+Nos cartazes A4, testar os três formatos existentes: folha inteira, dois cartazes e quatro cartazes.
+
+Em Stories e Status, testar a proporção 9:16 e a legibilidade dos avisos na imagem final.
+
+## 14. TESTES OBRIGATÓRIOS
+
+Criar testes para as regras de negócio e executar testes de regressão das funcionalidades já existentes.
+
+Cobrir pelo menos os cenários abaixo:
+
+1. Oferta válida com preço original e promocional.
+2. Oferta sem preço original.
+3. Preço promocional superior ao original.
+4. Desconto calculado incorretamente.
+5. Data final anterior à data inicial.
+6. Oferta vencida.
+7. Oferta válida sem necessidade de aviso regulatório específico.
+8. Defensivo agrícola sujeito a receituário.
+9. Produto com classificação regulatória pendente.
+10. Ausência de advertência obrigatória.
+11. Tentativa de remover um aviso obrigatório.
+12. Texto legal maior que a área disponível.
+13. Falha ao carregar uma imagem.
+14. Exportação de cartaz A4 inteiro, meio A5 e quatro por folha.
+15. Exportação de Stories e Status.
+16. Tentativa de alterar regras por usuário sem autorização.
+17. Alteração de uma regra e preservação de sua versão anterior.
+18. Promoção com abrangência restrita a determinadas lojas.
+
+Os testes devem verificar não apenas a mensagem apresentada na tela, mas também se o sistema efetivamente bloqueia as operações que precisam ser bloqueadas.
+
+## 15. DOCUMENTAÇÃO E MANUTENÇÃO
+
+Documentar:
+
+- Como funciona a classificação dos produtos.
+- Onde ficam armazenados os textos aprovados.
+- Como uma regra é ativada.
+- Como atualizar os modelos de rodapé.
+- Como funciona a validação de uma oferta.
+- Quais pendências bloqueiam a exportação.
+- Como são realizadas as validações de segurança.
+- Como executar os testes.
+
+Separar as regras de negócio dos componentes visuais sempre que isso for compatível com a arquitetura atual.
+
+Evitar duplicar regras entre Stories e cartazes.
+
+Não introduzir dependências, serviços pagos ou novas integrações externas sem necessidade justificada.
+
+## 16. ORDEM DE IMPLEMENTAÇÃO
+
+Trabalhar por etapas para evitar regressões.
+
+**Etapa 1 — Auditoria:** analisar a aplicação existente, identificar os componentes relevantes e documentar o que já está implementado.
+
+**Etapa 2 — Regras comerciais:** implementar vigência da oferta, abrangência, cálculo de desconto e validações de preço.
+
+**Etapa 3 — Conformidade:** implementar classificação de produtos, biblioteca de regras, textos aprovados e avisos automáticos.
+
+**Etapa 4 — Layout e exportação:** integrar os avisos ao rodapé e ajustar a composição para cada formato.
+
+**Etapa 5 — Segurança:** revisar permissões, persistência, validações confiáveis e histórico de alterações.
+
+**Etapa 6 — Testes:** testar os cenários previstos e corrigir regressões.
+
+**Etapa 7 — Entrega:** apresentar um resumo das alterações realizadas, os arquivos modificados, os testes executados e as pendências que dependem de decisão humana.
+
+Não considerar a tarefa concluída apenas porque a interface foi atualizada. As regras de negócio devem funcionar de ponta a ponta.
+
+## 17. CRITÉRIO DE SUCESSO
+
+A versão evoluída deverá continuar parecendo o mesmo Coagro Lojas Studio, só que mais inteligente e seguro.
+
+O usuário deve preencher poucos campos, obter a arte rapidamente e receber ajuda automática para não esquecer informações comerciais ou regulatórias importantes.
+
+Os avisos devem aparecer somente quando pertinentes, ser legíveis e ocupar o menor espaço possível sem comprometer as exigências aplicáveis.
+
+A aplicação não deve prometer conformidade jurídica absoluta. Ela deve aplicar regras documentadas, identificar pendências, manter histórico e encaminhar situações ambíguas para validação humana.
+
+Comece pela auditoria do código existente. Em seguida, apresente um plano de implementação curto e execute as melhorias incrementalmente, preservando as funcionalidades operacionais do MVP.
+
+## 4. As melhorias que eu priorizaria de verdade
+
+Para evitar que o agente tente implementar tudo de uma vez e acabe prejudicando o que já funciona, eu seguiria esta ordem:
+
+1\. Validade e regras comerciais
+
+Prioridade máxima
+
+Começar com datas da oferta, lojas participantes, cálculo automático do desconto e bloqueio de promoções vencidas. São regras relativamente simples, com impacto direto no dia a dia.
+
+2\. Motor de conformidade agro
+
+Criar a classificação dos produtos e os avisos automáticos. É a melhoria com maior impacto na redução de riscos, mas precisa de uma biblioteca de textos e regras validados.
+
+3\. Validação da arte antes de exportar
+
+Verificar se os avisos estão presentes, se os preços estão corretos e se o rodapé é legível. Mostrar somente as pendências que realmente exigem atenção.
+
+4\. Biblioteca de produtos e regras
+
+Em uma segunda etapa, cadastrar os produtos recorrentes com nome, código, classificação e avisos aplicáveis. Assim, a equipe não precisa classificar o mesmo produto toda vez que criar uma arte.
+
+## 5. Dois cuidados importantes antes de colocar em produção
+
+Primeiro: a aplicação deve distinguir entre uma obrigação legal e uma boa prática comercial. A validade da promoção, por exemplo, deve ser controlada e exibida de forma clara, mas a regra não deve inventar uma obrigação universal que não se aplique a todas as ofertas.
+
+Segundo: para defensivos agrícolas, não basta ter uma caixa marcada como “aviso incluído”. A peça precisa atender às exigências aplicáveis ao produto e ao meio de divulgação. A legislação trata da clareza das advertências e da proporção entre elas e o produto anunciado; portanto, um rodapé ilegível não é uma solução segura.&#x20;
+
+[image](https://www.google.com/s2/favicons?domain=https://www.gov.br\&sz=32)
+
+Regulamenta a propaganda de agrotóxicos
+
++1
+
+
+
+Antes de liberar a funcionalidade, recomendo que o responsável técnico ou jurídico da Coagro valide os textos e as condições de aplicação, inclusive as particularidades estaduais e dos produtos comercializados.
+
+Minha sugestão é começar com a Etapa 1 e a Etapa 2 do prompt, sem mexer ainda no desenho geral da interface. Depois, implementar o motor de conformidade com regras aprovadas e testes específicos.
+
+Uma limitação desta avaliação: consegui analisar as duas telas enviadas, mas não auditar o código-fonte publicado, pois o endereço da aplicação não ficou acessível para inspeção automatizada. Por isso, o prompt instrui o agente a verificar a arquitetura real antes de fazer alterações.
