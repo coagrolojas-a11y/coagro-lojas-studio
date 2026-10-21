@@ -848,6 +848,7 @@ export const BatchReviewGrid: React.FC<BatchReviewGridProps> = ({ onStartExport,
                           <option value="PROMOÇÃO">PROMOÇÃO</option>
                           <option value="SUPER PREÇO">SUPER PREÇO</option>
                           <option value="ESPECIAL">ESPECIAL</option>
+                          <option value="SALDÃO COAGRO">SALDÃO COAGRO</option>
                         </select>
                       </div>
 
@@ -954,6 +955,7 @@ export const BatchReviewGrid: React.FC<BatchReviewGridProps> = ({ onStartExport,
                   <option value="PROMOÇÃO">PROMOÇÃO</option>
                   <option value="SUPER PREÇO">SUPER PREÇO</option>
                   <option value="ESPECIAL">ESPECIAL</option>
+                  <option value="SALDÃO COAGRO">SALDÃO COAGRO</option>
                 </select>
               </div>
             </div>

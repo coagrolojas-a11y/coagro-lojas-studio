@@ -1,5 +1,6 @@
 import React from 'react';
 import { LogoVerticalBranca } from '../../../assets/coagroLogos';
+import { PosterCampaignTitle } from '../PosterCampaignTitle';
 
 export interface PromoAgroA4Props {
   title: string;
@@ -72,9 +73,7 @@ export const PromoAgroA4: React.FC<PromoAgroA4Props> = ({
           clipPath: 'polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%)',
         }}
       >
-        <h1 className="font-exo2 font-black uppercase leading-none text-center whitespace-nowrap" style={{ fontSize: headerFontSize, letterSpacing: '-0.02em' }}>
-          {headerText}
-        </h1>
+        <PosterCampaignTitle text={headerText} fontSize={headerFontSize} />
       </div>
 
       {/* MIOLO ÚTIL: PREENCHIMENTO COMPACTO E HARMONIOSO */}

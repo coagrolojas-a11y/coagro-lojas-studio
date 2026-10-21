@@ -1017,6 +1017,7 @@ export default function App() {
                       <option value="ESPECIAL">ESPECIAL</option>
                       <option value="NOVIDADE">NOVIDADE</option>
                       <option value="PREÇO BAIXO">PREÇO BAIXO</option>
+                      <option value="SALDÃO COAGRO">SALDÃO COAGRO</option>
                     </select>
                   </div>
 
