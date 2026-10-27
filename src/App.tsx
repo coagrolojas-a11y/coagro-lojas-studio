@@ -26,7 +26,7 @@ import { resolveDefaultTemplate } from './lib/layoutRules';
 import { CommunicationMode } from './lib/communicationMode';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { Eye, Sparkles, Copy, Download, Columns2, Maximize2, Box, FileText, Printer, ShieldCheck } from 'lucide-react';
+import { Eye, Sparkles, Copy, Download, Columns2, Maximize2, Box, FileText, Printer, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BrandHubModule } from './components/brand-hub/BrandHubModule';
 
 export default function App() {
@@ -43,6 +43,7 @@ export default function App() {
   const [posterTemplate, setPosterTemplate] = useState<PosterTemplateLayout>('promo-mono-a4');
   const [posterHeaderText, setPosterHeaderText] = useState<string>('OFERTA');
   const [posterGridFormat, setPosterGridFormat] = useState<PosterSheetGrid>('1_PER_PAGE');
+  const [posterPreviewPage, setPosterPreviewPage] = useState(0);
   const [showDiscountBadge, setShowDiscountBadge] = useState<boolean>(true);
   const [offerPeriod, setOfferPeriod] = useState<OfferPeriod>(() => ({
     startDate: getSaoPauloDate(),
@@ -397,10 +398,25 @@ export default function App() {
     setTimeout(() => setDownloadNotice(null), 4000);
   };
 
+  // Paginação do preview de cartazes em lote: cada folha comporta 1, 2 ou 4 cartazes.
+  const posterSlotsPerPage =
+    posterGridFormat === '4_PER_PAGE' ? 4 : posterGridFormat === '2_PER_PAGE' ? 2 : 1;
+  const batchPreviewPageCount =
+    posterMode === 'BATCH' && batchSelectedItems.length > 0
+      ? Math.max(1, Math.ceil(batchSelectedItems.length / posterSlotsPerPage))
+      : 1;
+  const currentPosterPreviewPage = Math.min(posterPreviewPage, batchPreviewPageCount - 1);
+  const batchPreviewItems = batchSelectedItems.slice(
+    currentPosterPreviewPage * posterSlotsPerPage,
+    currentPosterPreviewPage * posterSlotsPerPage + posterSlotsPerPage
+  );
+  const batchNeedsFullRender =
+    posterMode === 'BATCH' && batchSelectedItems.length > 0 && batchPreviewPageCount > 1;
+
   const validateActiveArtwork = () => {
     if (currentModule === 'STORE_POSTERS') {
       const products = posterMode === 'BATCH' && batchSelectedItems.length
-        ? batchSelectedItems.slice(0, posterGridFormat === '4_PER_PAGE' ? 4 : posterGridFormat === '2_PER_PAGE' ? 2 : 1)
+        ? batchPreviewItems
         : [manualPosterData];
       const results = products.map((item) =>
         validateArtworkForExport({
@@ -434,6 +450,27 @@ export default function App() {
 
   const handleDownloadCanvas = async (elementId: string, suffix: string) => {
     try {
+      if (currentModule === 'STORE_POSTERS' && batchNeedsFullRender) {
+        const blockers = batchSelectedItems.flatMap((item) =>
+          validateArtworkForExport({
+            title: item.titulo,
+            priceFrom: item.valorDe,
+            priceTo: item.valorPor,
+            offerPeriod,
+            requirePrice: true,
+          }).blockers
+        );
+        if (blockers.length) {
+          showNotice(`Exportação bloqueada: ${blockers[0]}`);
+          return;
+        }
+        // Lote com mais de uma folha: gera todas as páginas (e não só a folha exibida).
+        setBatchExportFormat('PNG');
+        setBatchTemplateToRender(posterTemplate);
+        setBatchHeaderTextToRender(posterHeaderText);
+        setBatchItemsToRender(batchSelectedItems);
+        return;
+      }
       const validation = validateActiveArtwork();
       if (validation.blockers.length) {
         showNotice(`Exportação bloqueada: ${validation.blockers[0]}`);
@@ -468,6 +505,27 @@ export default function App() {
 
   const handleDownloadPdf = async (elementId: string, suffix: string) => {
     try {
+      if (currentModule === 'STORE_POSTERS' && batchNeedsFullRender) {
+        const blockers = batchSelectedItems.flatMap((item) =>
+          validateArtworkForExport({
+            title: item.titulo,
+            priceFrom: item.valorDe,
+            priceTo: item.valorPor,
+            offerPeriod,
+            requirePrice: true,
+          }).blockers
+        );
+        if (blockers.length) {
+          showNotice(`Exportação bloqueada: ${blockers[0]}`);
+          return;
+        }
+        // Lote com mais de uma folha: gera um PDF único com todas as páginas.
+        setBatchExportFormat('PDF');
+        setBatchTemplateToRender(posterTemplate);
+        setBatchHeaderTextToRender(posterHeaderText);
+        setBatchItemsToRender(batchSelectedItems);
+        return;
+      }
       const validation = validateActiveArtwork();
       if (validation.blockers.length) {
         showNotice(`Exportação bloqueada: ${validation.blockers[0]}`);
@@ -1231,13 +1289,37 @@ export default function App() {
                     })()}
                   </div>
 
+                  {/* Navegação entre folhas do lote (1, 2 ou 4 cartazes por folha) */}
+                  {batchPreviewPageCount > 1 && (
+                    <div className="flex items-center justify-between w-full max-w-[420px] gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPosterPreviewPage(Math.max(0, currentPosterPreviewPage - 1))}
+                        disabled={currentPosterPreviewPage === 0}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        Anterior
+                      </button>
+                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide font-exo2">
+                        Página {currentPosterPreviewPage + 1} de {batchPreviewPageCount}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPosterPreviewPage(Math.min(batchPreviewPageCount - 1, currentPosterPreviewPage + 1))}
+                        disabled={currentPosterPreviewPage >= batchPreviewPageCount - 1}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                      >
+                        Próxima
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
                   {/* Preview da Folha (PosterSheetContainer) */}
                   <PosterSheetContainer id="preview-poster-a4" grid={posterGridFormat}>
-                    {posterMode === 'BATCH' && batchSelectedItems.length > 0 ? (
-                      (() => {
-                        const slotsCount = posterGridFormat === '4_PER_PAGE' ? 4 : posterGridFormat === '2_PER_PAGE' ? 2 : 1;
-                        const itemsToShow = batchSelectedItems.slice(0, slotsCount);
-                        return itemsToShow.map((item, idx) => (
+                    {posterMode === 'BATCH' && batchPreviewItems.length > 0 ? (
+                      batchPreviewItems.map((item, idx) => (
                           <SingleArtRenderer
                             key={`${item.id}-${idx}`}
                             content={{
@@ -1267,8 +1349,7 @@ export default function App() {
                               return discount ? discount.badgeText : undefined;
                             })()}
                           />
-                        ));
-                      })()
+                        ))
                     ) : (
                       <SingleArtRenderer
                         content={{
@@ -1306,7 +1387,7 @@ export default function App() {
                     <button
                       onClick={() => handleDownloadCanvas('preview-poster-a4', `cartaz-${posterGridFormat.toLowerCase()}`)}
                       className="flex-1 py-3 bg-[#d67022] hover:bg-[#b55b17] text-white rounded-xl text-xs sm:text-sm font-bold font-exo2 tracking-wide uppercase flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition active:scale-95 cursor-pointer"
-                      title="Baixar imagem PNG da folha montada"
+                      title={batchNeedsFullRender ? `Gerar todas as ${batchPreviewPageCount} folhas do lote em PNG` : 'Baixar imagem PNG da folha montada'}
                     >
                       <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                       PNG {posterGridFormat === '2_PER_PAGE' ? '(2x)' : posterGridFormat === '4_PER_PAGE' ? '(4x)' : ''}
@@ -1314,7 +1395,7 @@ export default function App() {
                     <button
                       onClick={() => handleDownloadPdf('preview-poster-a4', `cartaz-${posterGridFormat.toLowerCase()}`)}
                       className="flex-1 py-3 bg-[#004d40] hover:bg-[#00382e] text-white rounded-xl text-xs sm:text-sm font-bold font-exo2 tracking-wide uppercase flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition active:scale-95 cursor-pointer"
-                      title="Baixar arquivo PDF no tamanho exato para impressão física"
+                      title={batchNeedsFullRender ? `Gerar um PDF com as ${batchPreviewPageCount} folhas do lote` : 'Baixar arquivo PDF no tamanho exato para impressão física'}
                     >
                       <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                       PDF
