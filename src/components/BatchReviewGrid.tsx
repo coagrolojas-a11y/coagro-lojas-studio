@@ -844,6 +844,7 @@ export const BatchReviewGrid: React.FC<BatchReviewGridProps> = ({ onStartExport,
                           className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
                         >
                           <option value="SALDÃO COAGRO">SALDÃO COAGRO (IMAGEM)</option>
+                          <option value="EXPOAGRO">EXPOAGRO (IMAGEM)</option>
                           <option value="OFERTA">OFERTA</option>
                           <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
                           <option value="PROMOÇÃO">PROMOÇÃO</option>
@@ -951,6 +952,7 @@ export const BatchReviewGrid: React.FC<BatchReviewGridProps> = ({ onStartExport,
                   className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700"
                 >
                   <option value="SALDÃO COAGRO">SALDÃO COAGRO (IMAGEM)</option>
+                  <option value="EXPOAGRO">EXPOAGRO (IMAGEM)</option>
                   <option value="OFERTA">OFERTA</option>
                   <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
                   <option value="PROMOÇÃO">PROMOÇÃO</option>

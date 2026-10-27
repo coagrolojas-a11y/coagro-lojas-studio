@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as xlsx from 'xlsx';
-import { Upload, Check, Trash2, Download, Search, Sparkles } from 'lucide-react';
+import { Upload, Check, Trash2, Download, Search, Sparkles, Zap } from 'lucide-react';
 import { sanitizeErpTitle } from '../lib/erpSanitizer';
 import { parsePriceToFloat, normalizeAgroPrice } from '../lib/priceParser';
+import { buildExpoagroBatchItems } from '../lib/expoagroBatch';
+import { EXPOAGRO_ITEMS, EXPOAGRO_PERIOD } from '../data/expoagroPreset';
+import { formatOfferDate } from '../lib/offerPeriod';
+
+const EXPOAGRO_PERIOD_LABEL = `${formatOfferDate(EXPOAGRO_PERIOD.startDate)} a ${formatOfferDate(EXPOAGRO_PERIOD.endDate)}`;
 
 function parseExcelPrice(val: unknown): string {
   if (val === null || val === undefined || val === '') return '';
@@ -27,13 +32,18 @@ export interface BatchItem {
 interface ExcelBatchUploaderProps {
   onProcessBatch: (items: BatchItem[], format: 'PNG' | 'PDF') => void;
   onSelectedItemsChange?: (items: BatchItem[]) => void;
+  /** Avisa o App para aplicar o título EXPOAGRO (IMAGEM) e a vigência fixa. */
+  onApplyExpoagroPreset?: () => void;
+  /** Exibe o cartão do preset Expoagro (tabela exclusiva do modo Agro). */
+  showExpoagroPreset?: boolean;
 }
 
-export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProcessBatch, onSelectedItemsChange }) => {
+export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProcessBatch, onSelectedItemsChange, onApplyExpoagroPreset, showExpoagroPreset = true }) => {
   const [items, setItems] = useState<BatchItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [autoSanitizeErp, setAutoSanitizeErp] = useState(true);
+  const [presetLoaded, setPresetLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -99,6 +109,7 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
         }
 
         setItems(parsedItems);
+        setPresetLoaded(false);
       } catch (err) {
         console.error('Erro ao ler planilha:', err);
         alert('Ocorreu um erro ao ler a planilha. Tente novamente.');
@@ -113,6 +124,20 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleLoadExpoagroPreset = () => {
+    if (items.length > 0 && !presetLoaded) {
+      const confirmReplace = window.confirm(
+        'Substituir os itens carregados pela tabela Expoagro? A lista atual será perdida.'
+      );
+      if (!confirmReplace) return;
+    }
+
+    setItems(buildExpoagroBatchItems(autoSanitizeErp));
+    setSearchQuery('');
+    setPresetLoaded(true);
+    onApplyExpoagroPreset?.();
   };
 
   const handleToggleSanitize = (checked: boolean) => {
@@ -186,6 +211,35 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
         )}
       </div>
 
+      {showExpoagroPreset && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-amber-500/15 p-2 text-amber-700 shrink-0">
+              <Zap className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">
+                Promoção exclusiva
+              </p>
+              <h4 className="font-exo2 font-bold text-gray-800 leading-tight">
+                Tabela Expoagro 2026
+              </h4>
+              <p className="text-xs text-gray-600 mt-0.5">
+                {EXPOAGRO_ITEMS.length} itens • {EXPOAGRO_PERIOD_LABEL}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleLoadExpoagroPreset}
+            className="w-full sm:w-auto shrink-0 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold font-exo2 uppercase tracking-wide flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"
+          >
+            <Zap className="w-4 h-4" />
+            {presetLoaded ? 'Recarregar tabela' : 'Carregar tabela'}
+          </button>
+        </div>
+      )}
+
       {items.length > 0 && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-600 bg-gray-50 px-3 py-3 rounded-lg border border-gray-100 gap-3">
@@ -195,6 +249,12 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
               <div className="font-bold font-exo2 bg-white px-2 py-1 rounded-md border border-gray-200">
                 <span className="text-[#004d40]">{selectedCount}</span> de {items.length} marcados
               </div>
+              {presetLoaded && (
+                <span className="flex items-center gap-1 font-bold font-exo2 text-amber-800 bg-amber-100 px-2 py-1 rounded-md border border-amber-200">
+                  <Zap className="w-3 h-3" />
+                  Tabela Expoagro 2026
+                </span>
+              )}
               <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 transition select-none">
                 <input
                   type="checkbox"
@@ -282,7 +342,10 @@ export const ExcelBatchUploader: React.FC<ExcelBatchUploaderProps> = ({ onProces
               Gerar {selectedCount} em PDF
             </button>
             <button
-              onClick={() => setItems([])}
+              onClick={() => {
+                setItems([]);
+                setPresetLoaded(false);
+              }}
               className="p-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition cursor-pointer"
               title="Descartar Planilha"
             >

@@ -16,7 +16,10 @@ import { getDefaultSocialManualData, syncSocialManualDataToContent } from './lib
 import { PosterSheetContainer, PosterSheetGrid } from './components/art-renderer/PosterSheetContainer';
 import { calculateDiscount } from './lib/priceCalculator';
 import { validateArtworkForExport } from './lib/artworkValidation';
-import { OfferPeriod, formatOfferPeriod, getSaoPauloDate } from './lib/offerPeriod';
+import { OfferPeriod, formatOfferPeriod, formatOfferDate, getSaoPauloDate } from './lib/offerPeriod';
+import { EXPOAGRO_HEADER_TEXT, EXPOAGRO_PERIOD } from './data/expoagroPreset';
+import { shouldApplyExpoagroPeriod } from './lib/expoagroOffer';
+import { OfferValidityFields } from './components/OfferValidityFields';
 import { getAccessToken } from './lib/firebase';
 import { uploadToGoogleDrive } from './lib/googleDrive';
 import { resolveDefaultTemplate } from './lib/layoutRules';
@@ -240,6 +243,31 @@ export default function App() {
   const [batchTemplateToRender, setBatchTemplateToRender] = useState<PosterTemplateLayout>('promo-mono-a4');
   const [batchHeaderTextToRender, setBatchHeaderTextToRender] = useState<string>('OFERTA');
   const [batchSelectedItems, setBatchSelectedItems] = useState<BatchItem[]>([]);
+
+  const handleApplyExpoagroPreset = () => {
+    setPosterHeaderText(EXPOAGRO_HEADER_TEXT);
+    const periodApplied = shouldApplyExpoagroPeriod(offerPeriod);
+    if (periodApplied) setOfferPeriod(EXPOAGRO_PERIOD);
+    showNotice(
+      periodApplied
+        ? `✅ Tabela Expoagro carregada: título EXPOAGRO (IMAGEM) e vigência ${formatOfferDate(EXPOAGRO_PERIOD.startDate)} a ${formatOfferDate(EXPOAGRO_PERIOD.endDate)}.`
+        : '✅ Tabela Expoagro carregada com o título EXPOAGRO (IMAGEM). Vigência personalizada mantida.'
+    );
+  };
+
+  const handlePosterHeaderChange = (value: string) => {
+    setPosterHeaderText(value);
+    if (value !== EXPOAGRO_HEADER_TEXT) return;
+
+    if (shouldApplyExpoagroPeriod(offerPeriod)) {
+      setOfferPeriod(EXPOAGRO_PERIOD);
+      showNotice(
+        `Vigência da Expoagro aplicada: ${formatOfferDate(EXPOAGRO_PERIOD.startDate)} a ${formatOfferDate(EXPOAGRO_PERIOD.endDate)}.`
+      );
+    } else {
+      showNotice('Vigência personalizada mantida. Ajuste as datas em "Oferta e vigência".');
+    }
+  };
 
   const handleStartBatch = (items: BatchItem[], format: 'PNG' | 'PDF') => {
     const blockers = items.flatMap((item) =>
@@ -1007,10 +1035,11 @@ export default function App() {
                     <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Título da Etiqueta</span>
                     <select
                       value={posterHeaderText}
-                      onChange={(e) => setPosterHeaderText(e.target.value)}
+                      onChange={(e) => handlePosterHeaderChange(e.target.value)}
                       className="w-full p-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-800 bg-gray-50 focus:ring-[#004d40] focus:border-[#004d40] transition cursor-pointer"
                     >
                       <option value="SALDÃO COAGRO">SALDÃO COAGRO (IMAGEM)</option>
+                      <option value="EXPOAGRO">EXPOAGRO (IMAGEM)</option>
                       <option value="OFERTA">OFERTA</option>
                       <option value="LIQUIDAÇÃO">LIQUIDAÇÃO</option>
                       <option value="PROMOÇÃO">PROMOÇÃO</option>
@@ -1101,7 +1130,15 @@ export default function App() {
                       <ExcelBatchUploader 
                         onProcessBatch={(items, format) => handleStartBatch(items, format)} 
                         onSelectedItemsChange={setBatchSelectedItems}
+                        onApplyExpoagroPreset={handleApplyExpoagroPreset}
+                        showExpoagroPreset={appMode === 'AGRO'}
                       />
+                      <div className="mt-6">
+                        <OfferValidityFields
+                          value={offerPeriod}
+                          onChange={setOfferPeriod}
+                        />
+                      </div>
                     </div>
                   ) : (
                     <PosterManualEditor 

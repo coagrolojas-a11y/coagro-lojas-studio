@@ -655,6 +655,7 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
                     <option value="SUPER PREÇO">Super Preço</option>
                     <option value="LIQUIDAÇÃO">Liquidação</option>
                     <option value="SALDÃO COAGRO">Saldão Coagro</option>
+                    <option value="EXPOAGRO">Expoagro 2026</option>
                     {appMode === 'PET' ? (
                       <option value="OFERTA PET">Oferta Pet</option>
                     ) : (
