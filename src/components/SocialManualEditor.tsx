@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload, X, Type, Tag, Palette, Wand2, Plus, Trash2, List, LayoutTemplate, Store, Sparkles, MessageCircle, Loader2 } from 'lucide-react';
+import { Upload, X, Type, Tag, Palette, Wand2, Plus, Trash2, List, LayoutTemplate, Sparkles, Star, MessageCircle, Loader2 } from 'lucide-react';
 import { TemplateLayout, CanvasFormat } from '../types/agro';
 import { removeWhiteBackground, processProductImage } from '../lib/imageTransparency';
 import { sanitizeErpTitle } from '../lib/erpSanitizer';
@@ -222,6 +222,9 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
   };
 
   const isPet = appMode === 'PET';
+  const isCampaignPromo =
+    templateLayout === 'promo-simples-saldao' || templateLayout === 'promo-simples-expoagro';
+  const isExpoagroPromo = templateLayout === 'promo-simples-expoagro';
   const primaryColor = isPet ? '#4897D0' : '#004d40';
   const primaryColorLight = isPet ? 'rgba(72,151,208,0.1)' : 'rgba(0,77,64,0.1)';
 
@@ -508,24 +511,31 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                 {[
                   { id: 'whatsapp-status', label: 'Status Zap', icon: MessageCircle },
-                  { id: 'unified-central', label: 'Central', icon: Store },
-                  { id: 'unified-split', label: 'Split (Lado)', icon: LayoutTemplate },
                   { id: 'promo-simples', label: 'Promo Simples', icon: Tag },
                   { id: 'promo-simples-saldao', label: 'Promo Saldão', icon: Sparkles },
+                  { id: 'promo-simples-expoagro', label: 'Promo Expoagro', icon: Star },
                   { id: 'informative-central', label: 'Info Central', icon: List },
                   { id: 'informative-split', label: 'Info Split', icon: LayoutTemplate },
-                ].map(tpl => (
+                ].filter(tpl => !isPet || tpl.id !== 'promo-simples-expoagro').map(tpl => (
                   <button
                     key={tpl.id}
                     onClick={(e) => {
                       e.preventDefault();
-                      if (tpl.id === 'promo-simples-saldao') {
+                      if (tpl.id === 'promo-simples-saldao' || tpl.id === 'promo-simples-expoagro') {
+                        const isExpoagro = tpl.id === 'promo-simples-expoagro';
+                        const alreadyOnThisLayout = templateLayout === tpl.id;
                         const currentColor = data.backgroundColorHex;
-                        onChange({
-                          ...data,
-                          backgroundColorHex: currentColor === 'azul' || currentColor === 'verde' ? currentColor : 'azul',
-                        });
-                      } else if (templateLayout === 'promo-simples-saldao' && format === 'feed-4x3') {
+                        // Expoagro entra com o marrom da campanha; Saldão mantém azul/verde.
+                        const nextColor = isExpoagro
+                          ? alreadyOnThisLayout && currentColor
+                            ? currentColor
+                            : 'marrom'
+                          : currentColor === 'azul' || currentColor === 'verde'
+                            ? currentColor
+                            : 'azul';
+                        onChange({ ...data, backgroundColorHex: nextColor });
+                        if (format !== 'story') onFormatChange('story');
+                      } else if (isCampaignPromo && format === 'feed-4x3') {
                         onFormatChange('story');
                       }
                       onTemplateChange(tpl.id as TemplateLayout);
@@ -544,37 +554,10 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
               </div>
             </div>
 
-            {templateLayout === 'promo-simples-saldao' && (
-              <div className="flex flex-col gap-2 border-t border-gray-100 pt-4">
-                <label className="block text-xs font-bold uppercase tracking-wide text-gray-700">
-                  Formato da Promoção
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'story', label: 'Story 9:16' },
-                    { id: 'feed-4x3', label: 'Feed 4:3' },
-                  ].map(option => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => onFormatChange(option.id as CanvasFormat)}
-                      className={`rounded-xl border px-3 py-2 text-sm font-bold transition ${
-                        format === option.id
-                          ? 'border-[#004d40] bg-[#004d40]/10 text-[#004d40] ring-2 ring-[#004d40]/20'
-                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Cores e Selo da Campanha */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
               {/* Cor do Template (Geral) */}
-              {templateLayout !== 'promo-simples-saldao' && (
+              {!isCampaignPromo && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
                     Cor do Template
@@ -604,17 +587,27 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
               )}
 
               {/* Cor de Fundo (Apenas para Promo Simples) */}
-              {['promo-simples', 'promo-simples-saldao'].includes(templateLayout) && (
+              {['promo-simples', 'promo-simples-saldao', 'promo-simples-expoagro'].includes(templateLayout) && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-                    {templateLayout === 'promo-simples-saldao' ? 'Cor da Promoção Saldão' : 'Fundo Promo Simples'}
+                    {templateLayout === 'promo-simples-expoagro'
+                      ? 'Cor da Promoção Expoagro'
+                      : templateLayout === 'promo-simples-saldao'
+                        ? 'Cor da Promoção Saldão'
+                        : 'Fundo Promo Simples'}
                   </label>
                   <select
-                    value={data.backgroundColorHex || (appMode === 'PET' ? 'branco' : 'azul')}
+                    value={data.backgroundColorHex || (isExpoagroPromo ? 'marrom' : appMode === 'PET' ? 'branco' : 'azul')}
                     onChange={(e) => onChange({ ...data, backgroundColorHex: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:ring-2 focus:border-[#004d40] transition-all"
                   >
-                    {templateLayout === 'promo-simples-saldao' ? (
+                    {isExpoagroPromo ? (
+                      <>
+                        <option value="marrom">Marrom Expoagro (Padrão)</option>
+                        <option value="azul">Azul Publicitário</option>
+                        <option value="verde">Verde Institucional</option>
+                      </>
+                    ) : isCampaignPromo ? (
                       <>
                         <option value="azul">Azul (Padrão)</option>
                         <option value="verde">Verde</option>
@@ -637,7 +630,7 @@ export const SocialManualEditor: React.FC<SocialManualEditorProps> = ({
               )}
 
               {/* Selo Promocional (Badge) */}
-              {templateLayout !== 'promo-simples-saldao' && (
+              {!isCampaignPromo && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
                     Selo da Campanha

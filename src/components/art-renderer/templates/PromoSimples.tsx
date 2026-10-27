@@ -26,6 +26,8 @@ export interface PromoSimplesProps {
   backgroundColorHex?: string;
   isLight?: boolean;
   campaignVariant?: boolean;
+  /** Arte de campanha exibida no topo quando `campaignVariant` está ativo. */
+  campaignBadge?: 'SALDÃO COAGRO' | 'EXPOAGRO';
 }
 
 /**
@@ -51,6 +53,7 @@ export const PromoSimples: React.FC<PromoSimplesProps> = ({
   backgroundColorHex,
   isLight,
   campaignVariant = false,
+  campaignBadge = 'SALDÃO COAGRO',
 }) => {
   const isPet = scope === 'PET';
 
@@ -59,12 +62,16 @@ export const PromoSimples: React.FC<PromoSimplesProps> = ({
     'branco': 'bg-white',
     'verde': 'bg-[#004d40]',
     'azul': 'bg-[#001C71]',
-    'laranja': 'bg-[#E96C2C]'
+    'laranja': 'bg-[#E96C2C]',
+    // Marrom Expoagro: amostrado da arte oficial da campanha (corpo em #4A2800,
+    // com leve gradiente quente do topo (#5B3209) para a base (#3A1C00)).
+    'marrom': 'bg-[linear-gradient(180deg,#5B3209_0%,#4A2800_45%,#3A1C00_100%)]',
   };
 
-  const effectiveBackgroundColor = campaignVariant ? (backgroundColorHex || 'azul') : backgroundColorHex;
+  const campaignDefaultColor = campaignBadge === 'EXPOAGRO' ? 'marrom' : 'azul';
+  const effectiveBackgroundColor = campaignVariant ? (backgroundColorHex || campaignDefaultColor) : backgroundColorHex;
   const bgClass = effectiveBackgroundColor && bgMap[effectiveBackgroundColor] ? bgMap[effectiveBackgroundColor] : 'bg-transparent';
-  const isDark = effectiveBackgroundColor && ['verde', 'azul', 'laranja'].includes(effectiveBackgroundColor) ? true : !isLight;
+  const isDark = effectiveBackgroundColor && ['verde', 'azul', 'laranja', 'marrom'].includes(effectiveBackgroundColor) ? true : !isLight;
 
   const titleColor = isDark ? 'text-white' : 'text-gray-900';
   const highlightColor = isDark ? 'text-white' : (isPet ? 'text-[#E96C2C]' : 'text-[#004d40]');
@@ -87,7 +94,7 @@ export const PromoSimples: React.FC<PromoSimplesProps> = ({
         {campaignVariant ? (
           <div className={`flex ${isStory ? 'h-[clamp(96px,27cqw,172px)]' : 'h-[clamp(72px,18cqw,112px)]'} w-[92%] max-w-[480px] items-center justify-center px-4 py-2 drop-shadow-[0_8px_14px_rgba(0,0,0,0.35)]`}>
             <CampaignBadgeContent
-              badge="SALDÃO COAGRO"
+              badge={campaignBadge}
               imageClassName="h-full w-full object-contain"
             />
           </div>

@@ -386,11 +386,12 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
             benefits={benefits}
             cta={cta}
           />
-        ) : activeTemplate === 'promo-simples' || activeTemplate === 'promo-simples-saldao' ? (
+        ) : activeTemplate === 'promo-simples' || activeTemplate === 'promo-simples-saldao' || activeTemplate === 'promo-simples-expoagro' ? (
           <PromoSimples
             backgroundColorHex={content.fundo_cor_hex}
             isLight={isLight}
-            campaignVariant={activeTemplate === 'promo-simples-saldao'}
+            campaignVariant={activeTemplate === 'promo-simples-saldao' || activeTemplate === 'promo-simples-expoagro'}
+            campaignBadge={activeTemplate === 'promo-simples-expoagro' ? 'EXPOAGRO' : 'SALDÃO COAGRO'}
             codigo={codigoProduto}
             scope={scope}
             title={title}
@@ -525,7 +526,7 @@ export const SingleArtRenderer: React.FC<SingleArtRendererProps> = ({
         )}
 
         {/* Selo Promocional Flutuante (Injetado via SingleArtRenderer) */}
-        {badgeText && badgeText !== 'Sem Selo' && !['promo-text-only', 'promo-agro-a4', 'promo-mono-a4', 'promo-pet-a4', 'promo-pet-orange-a4', 'promo-simples-saldao', 'whatsapp-status', 'pet-central'].includes(activeTemplate) && (
+        {badgeText && badgeText !== 'Sem Selo' && !['promo-text-only', 'promo-agro-a4', 'promo-mono-a4', 'promo-pet-a4', 'promo-pet-orange-a4', 'promo-simples-saldao', 'promo-simples-expoagro', 'whatsapp-status', 'pet-central'].includes(activeTemplate) && (
           badgeText === 'SALDÃO COAGRO' ? (
             <div className="absolute top-5 right-5 z-50 w-32 sm:w-40">
               <CampaignBadgeContent badge={badgeText} />

@@ -19,5 +19,16 @@ export const CampaignBadgeContent: React.FC<CampaignBadgeContentProps> = ({
     );
   }
 
+  if (badge === 'EXPOAGRO') {
+    return (
+      <img
+        src="/expoagro/expoagro-logo-color.png"
+        alt="Promoção Exclusiva — Expoagro 2026"
+        className={imageClassName}
+        style={{ filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.35))' }}
+      />
+    );
+  }
+
   return <>{badge}</>;
 };
